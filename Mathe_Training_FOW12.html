@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathe-Training FOW 12 – Abschlussprüfung</title>
+<style>
+:root {
+  --ink:#1a1f2e; --ink2:#4a5068; --paper:#f7f5f0; --cream:#efecea;
+  --blue:#1d5fa8; --blue-l:#eaf0fa; --blue-d:#1F4E79;
+  --green:#1e6b3a; --green-l:#eaf4ed;
+  --gold:#b88c2a; --gold-l:#fff8ee;
+  --red:#c0392b; --red-l:#fdedec;
+  --purple:#5b2c8d; --purple-l:#f3eefa;
+  --radius:12px; --shadow:0 2px 16px rgba(26,31,46,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+
+/* ── Header ── */
+.hdr{background:var(--ink);color:#fff;padding:20px 32px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.3);}
+.hdr-title{font-size:18px;font-weight:700;flex:1;}
+.hdr-sub{font-size:12px;color:#aab8cc;}
+.score-pill{background:rgba(255,255,255,.12);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;}
+
+/* ── Tab Navigation ── */
+.tabs{display:flex;gap:6px;padding:14px 32px;background:var(--cream);border-bottom:1px solid #ddd;overflow-x:auto;}
+.tab{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #ccc;background:var(--paper);color:var(--ink2);white-space:nowrap;transition:all .2s;}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.tab.done{border-color:var(--green);color:var(--green);background:var(--green-l);}
+.tab.done::before{content:"✓ ";}
+
+/* ── Main ── */
+.main{max-width:900px;margin:0 auto;padding:32px 20px 80px;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* ── Section header ── */
+.sec-hdr{margin-bottom:28px;}
+.sec-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px;}
+.sec-title{font-size:26px;font-weight:700;color:var(--ink);}
+.sec-sub{font-size:14px;color:var(--ink2);margin-top:6px;line-height:1.6;}
+
+/* ── Card ── */
+.card{background:#fff;border:1px solid #e0ddd8;border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow);}
+.card-nr{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink2);margin-bottom:8px;}
+.card-q{font-size:15px;line-height:1.7;margin-bottom:16px;}
+.card-q .hl{font-weight:700;color:var(--blue-d);}
+.card-q .fn{font-family:monospace;background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:14px;}
+
+/* ── MC options ── */
+.options{display:flex;flex-direction:column;gap:8px;margin:12px 0;}
+.opt{padding:11px 16px;border-radius:8px;border:1.5px solid #ddd;cursor:pointer;font-size:14px;transition:all .2s;background:#fff;}
+.opt:hover{border-color:var(--blue);background:var(--blue-l);}
+.opt.correct{border-color:var(--green)!important;background:var(--green-l)!important;color:var(--green);font-weight:600;}
+.opt.wrong{border-color:var(--red)!important;background:var(--red-l)!important;color:var(--red);}
+.opt.revealed{border-color:var(--green);background:var(--green-l);color:var(--green);opacity:.7;}
+
+/* ── Fill-in ── */
+.fill-row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap;}
+.fill-label{font-size:14px;color:var(--ink2);}
+input.fill{border:1.5px solid #ccc;border-radius:6px;padding:8px 12px;font-size:14px;width:140px;transition:all .2s;font-family:monospace;}
+input.fill:focus{outline:none;border-color:var(--blue);}
+input.fill.correct{border-color:var(--green);background:var(--green-l);}
+input.fill.wrong{border-color:var(--red);background:var(--red-l);}
+
+/* ── Drag-drop ── */
+.dd-zone{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0;}
+.dd-source{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+.dd-chip{padding:8px 14px;border-radius:20px;background:var(--blue-l);border:1.5px solid var(--blue);color:var(--blue-d);font-size:13px;font-weight:500;cursor:grab;user-select:none;transition:all .2s;}
+.dd-chip:active{cursor:grabbing;transform:scale(1.05);}
+.dd-chip.placed{opacity:.35;pointer-events:none;}
+.dd-target{min-width:160px;min-height:44px;border:2px dashed #bbb;border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#999;transition:all .2s;background:#fafafa;}
+.dd-target.over{border-color:var(--blue);background:var(--blue-l);}
+.dd-target.filled{border-style:solid;color:var(--ink);}
+.dd-target.correct{border-color:var(--green);background:var(--green-l);color:var(--green);font-weight:600;}
+.dd-target.wrong{border-color:var(--red);background:var(--red-l);color:var(--red);}
+
+/* ── Step-by-step ── */
+.step-box{background:var(--purple-l);border-left:4px solid var(--purple);border-radius:8px;padding:16px;margin:12px 0;}
+.step-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid rgba(91,44,141,.15);flex-wrap:wrap;}
+.step-row:last-child{border-bottom:none;}
+.step-el{font-family:monospace;font-weight:700;color:var(--purple);min-width:40px;font-size:16px;}
+.step-formula{font-size:13px;color:var(--ink2);flex:1;min-width:160px;}
+.step-answer{display:flex;align-items:center;gap:8px;}
+input.step-in{border:1.5px solid #bbb;border-radius:6px;padding:6px 10px;font-size:14px;font-family:monospace;width:90px;text-align:center;}
+input.step-in:focus{outline:none;border-color:var(--purple);}
+input.step-in.correct{border-color:var(--green);background:var(--green-l);}
+input.step-in.wrong{border-color:var(--red);background:var(--red-l);}
+
+/* ── Buttons ── */
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;font-family:inherit;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:#1449822;}
+.btn-check{background:var(--blue-d);color:#fff;}
+.btn-next{background:var(--ink);color:#fff;padding:12px 28px;font-size:15px;border-radius:10px;}
+.btn-tipp{background:var(--gold-l);color:var(--gold);border:1.5px solid #e0c878;font-size:12px;}
+.btn-reset{background:#f0f0f0;color:#666;font-size:12px;}
+
+/* ── Feedback ── */
+.feedback{margin-top:12px;padding:12px 16px;border-radius:8px;font-size:13px;line-height:1.6;display:none;}
+.feedback.correct{background:var(--green-l);color:#145228;border-left:3px solid var(--green);}
+.feedback.wrong{background:var(--red-l);color:#8b1a0e;border-left:3px solid var(--red);}
+.feedback.info{background:var(--blue-l);color:#143d6e;border-left:3px solid var(--blue);}
+.feedback.visible{display:block;}
+
+/* ── Tipp ── */
+.tipp{display:none;margin-top:10px;background:var(--gold-l);border-left:3px solid var(--gold);padding:10px 14px;border-radius:8px;font-size:13px;color:#6b4000;line-height:1.6;}
+.tipp.visible{display:block;}
+
+/* ── Progress ── */
+.progress-bar{height:4px;background:#ddd;border-radius:2px;margin-top:8px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .4s;}
+
+/* ── Matrix display ── */
+.mx{display:inline-grid;gap:2px;padding:4px 10px;border-left:3px solid var(--ink2);border-right:3px solid var(--ink2);font-family:monospace;font-size:14px;vertical-align:middle;}
+.mx td{padding:4px 8px;text-align:center;background:#f5f5f5;border-radius:3px;}
+.mx.sol td{background:var(--green-l);color:var(--green);}
+
+/* ── Score screen ── */
+.score-screen{text-align:center;padding:48px 24px;display:none;}
+.score-screen.visible{display:block;}
+.score-big{font-size:72px;font-weight:800;color:var(--blue);}
+.score-msg{font-size:20px;color:var(--ink2);margin:12px 0 24px;}
+.trophy{font-size:64px;margin-bottom:16px;}
+
+
+/* ── Wahr/Falsch ── */
+.tf-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #eee; flex-wrap:wrap; }
+.tf-row:last-child { border-bottom:none; }
+.tf-stmt { font-size:14px; flex:1; min-width:200px; }
+.tf-btns { display:flex; gap:6px; }
+.tf-btn { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:1.5px solid #ccc; background:#fff; transition:all .2s; }
+.tf-btn.correct { background:var(--green-l); border-color:var(--green); color:var(--green); }
+.tf-btn.wrong   { background:var(--red-l);   border-color:var(--red);   color:var(--red); }
+
+/* ── Sortieren / Reihenfolge ── */
+.sort-list { display:flex; flex-direction:column; gap:6px; margin:12px 0; }
+.sort-item { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#f7f7f7; border-radius:8px; border:1.5px solid #ddd; cursor:grab; font-size:14px; }
+.sort-item.dragging { opacity:.4; }
+.sort-item.correct-pos { border-color:var(--green); background:var(--green-l); }
+.sort-item.wrong-pos   { border-color:var(--red);   background:var(--red-l); }
+.sort-handle { color:#bbb; font-size:18px; cursor:grab; }
+
+/* ── Fehler finden ── */
+.err-line { font-family:monospace; font-size:14px; padding:8px 14px; background:#f0f0f0; border-radius:6px; margin:6px 0; cursor:pointer; border:2px solid transparent; transition:all .2s; }
+.err-line:hover { border-color:var(--blue); }
+.err-line.selected { border-color:var(--blue); background:var(--blue-l); }
+.err-line.correct  { border-color:var(--green); background:var(--green-l); }
+.err-line.wrong    { border-color:var(--red);   background:var(--red-l); }
+
+/* ── Zuordnung (Paare verbinden) ── */
+.match-wrap { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
+.match-left, .match-right { display:flex; flex-direction:column; gap:6px; }
+.match-item { padding:9px 14px; border-radius:8px; border:1.5px solid #ccc; font-size:13px; cursor:pointer; transition:all .2s; background:#fff; }
+.match-item.selected { border-color:var(--blue); background:var(--blue-l); font-weight:600; }
+.match-item.matched  { border-color:var(--green); background:var(--green-l); cursor:default; }
+.match-item.wrong    { border-color:var(--red);   background:var(--red-l); }
+
+/* ── Schieberegler Aufgabe ── */
+.slider-wrap { margin:16px 0; }
+.slider-row { display:flex; align-items:center; gap:12px; margin:8px 0; }
+.slider-label { font-size:13px; color:var(--ink2); min-width:60px; }
+input[type=range] { flex:1; accent-color:var(--blue); }
+.slider-val { font-size:14px; font-weight:700; color:var(--blue-d); min-width:60px; }
+
+/* ── Eingabe-Tabelle ── */
+.input-table { width:100%; border-collapse:collapse; margin:12px 0; }
+.input-table th { background:var(--blue-d); color:#fff; padding:8px 12px; font-size:13px; text-align:center; }
+.input-table td { border:1px solid #ddd; padding:6px; text-align:center; }
+.input-table td input { width:70px; text-align:center; border:1px solid #bbb; border-radius:4px; padding:4px 6px; font-size:13px; font-family:monospace; }
+.input-table td input.correct { border-color:var(--green); background:var(--green-l); }
+.input-table td input.wrong   { border-color:var(--red);   background:var(--red-l); }
+
+/* ── Responsive ── */
+@media(max-width:600px){.main{padding:16px 12px 60px;}.hdr{padding:14px 16px;}.tabs{padding:10px 12px;}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div>
+    <div class="hdr-title">🎓 Mathe-Training FOW 12</div>
+    <div class="hdr-sub">Vorbereitung Abschlussprüfung · Ökonomie</div>
+  </div>
+  <div class="score-pill" id="global-score">⭐ 0 Punkte</div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <div class="tab active" onclick="showSection(0)" id="tab-0">📈 Preis & Erlös</div>
+  <div class="tab" onclick="showSection(1)" id="tab-1">📉 Kurvendiskussion</div>
+  <div class="tab" onclick="showSection(2)" id="tab-2">💰 Gewinnanalyse</div>
+  <div class="tab" onclick="showSection(3)" id="tab-3">⚖️ Markt & Integral</div>
+  <div class="tab" onclick="showSection(4)" id="tab-4">🔢 Lineare Algebra</div>
+</nav>
+
+<main class="main">
+
+<!-- ═══════════════════════════════════════════════════
+     SEKTION 0 — PREIS-ABSATZ / ERLÖS / GEWINN
+═══════════════════════════════════════════════════ -->
+<div class="section active" id="sec-0">
+  <div class="sec-hdr">
+    <div class="sec-label">Aufgabe 1</div>
+    <h2 class="sec-title">Preis-Absatz-Funktion, Erlös und Gewinn</h2>
+    <p class="sec-sub">Quiz, Lückentext und interaktive Schritte zu Monopol-Grundlagen.</p>
+    <div class="progress-bar"><div class="progress-fill" id="prog-0" style="width:0%"></div></div>
+  </div>
+
+  <!-- 0-1: MC — Erlösfunktion aufstellen -->
+  <div class="card">
+    <div class="card-nr">Quiz 1 · Multiple Choice</div>
+    <div class="card-q">
+      Gegeben: <span class="hl">p(x) = −1,5x + 15</span>. Welche Formel beschreibt die Erlösfunktion E(x)?
+    </div>
+    <div class="options" id="mc0-opts">
+      <div class="opt" onclick="checkMC('mc0',this,0)">A) E(x) = −1,5x + 15</div>
+      <div class="opt" onclick="checkMC('mc0',this,1)">B) E(x) = −1,5x² + 15x</div>
+      <div class="opt" onclick="checkMC('mc0',this,2)">C) E(x) = 1,5x² + 15x</div>
+      <div class="opt" onclick="checkMC('mc0',this,3)">D) E(x) = −1,5x² − 15x</div>
+    </div>
+    <div class="feedback" id="fb-mc0"></div>
+  </div>
+
+  <!-- 0-2: Fill-in — Erlös berechnen -->
+  <div class="card">
+    <div class="card-nr">Lückentext 1 · Rechnen</div>
+    <div class="card-q">
+      Gegeben: <span class="hl">E(x) = −1,5x² + 15x</span>. Berechnen Sie E(6):
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">E(6) = −1,5 · 36 + 15 · 6 =</span>
+      <input class="fill" id="fi0-1" placeholder="?" maxlength="5">
+      <span class="fill-label">GE</span>
+    </div>
+    <div class="fill-row" style="margin-top:8px">
+      <span class="fill-label">Welche andere Menge erzielt denselben Erlös?  x =</span>
+      <input class="fill" id="fi0-2" placeholder="?" maxlength="3">
+      <span class="fill-label">ME</span>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-check" onclick="checkFill0()">Prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp0-1')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp0-1">E(6) = −54 + 90 = ? | Für die andere Menge: E(x) = 36 → −1,5x² + 15x − 36 = 0 → x² − 10x + 24 = 0 → Lösungsformel!</div>
+    <div class="feedback" id="fb-fi0"></div>
+  </div>
+
+  <!-- 0-3: Step-by-step — Cournot -->
+  <div class="card">
+    <div class="card-nr">Schritt-für-Schritt · Cournot'scher Punkt</div>
+    <div class="card-q">
+      Bestimmen Sie den Cournot'schen Punkt für <span class="hl">E(x) = −1,5x² + 15x</span>.<br>
+      (Cournot: E'(x) = 0 → gewinnmaximaler Preis aus Sicht der Erlösmaximierung)
+    </div>
+    <div class="step-box">
+      <div class="step-row">
+        <div class="step-el">E'(x)</div>
+        <div class="step-formula">Ableitung von E(x) = −1,5x² + 15x</div>
+        <div class="step-answer">E'(x) = <input class="step-in" id="s0-1" placeholder="?"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">x_C</div>
+        <div class="step-formula">E'(x) = 0 setzen und lösen</div>
+        <div class="step-answer">x_C = <input class="step-in" id="s0-2" placeholder="?"> ME</div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">p_C</div>
+        <div class="step-formula">p(x_C) = −1,5 · x_C + 15</div>
+        <div class="step-answer">p_C = <input class="step-in" id="s0-3" placeholder="?"> GE/ME</div>
+      </div>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-check" onclick="checkSteps0()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp0-2')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp0-2">E'(x) = −3x + 15. Dann E'(x)=0 → −3x+15=0 → x=5. Dann p(5)=?</div>
+    <div class="feedback" id="fb-s0"></div>
+  </div>
+
+  <!-- 0-4: MC — Gewinn bei festem Preis -->
+  <div class="card">
+    <div class="card-nr">Quiz 2 · Multiple Choice</div>
+    <div class="card-q">
+      Gegeben: <span class="hl">G(x) = −x³ + 3x² + 6x − 3</span> und Preis <span class="hl">p = 9 GE/ME</span> mit p(x) = −1,5x + 15.<br>
+      Welche Menge x ergibt sich bei p = 9?
+    </div>
+    <div class="options" id="mc1-opts">
+      <div class="opt" onclick="checkMC('mc1',this,0)">A) x = 3 ME</div>
+      <div class="opt" onclick="checkMC('mc1',this,1)">B) x = 4 ME</div>
+      <div class="opt" onclick="checkMC('mc1',this,2)">C) x = 5 ME</div>
+      <div class="opt" onclick="checkMC('mc1',this,3)">D) x = 6 ME</div>
+    </div>
+    <div class="feedback" id="fb-mc1"></div>
+  </div>
+
+  <!-- 0-5: Fill-in — Preis-Absatz aus zwei Punkten -->
+  <div class="card">
+    <div class="card-nr">Lückentext 2 · Preis-Absatz-Funktion</div>
+    <div class="card-q">
+      Bei <span class="hl">p = 25 GE/ME → x = 2 ME</span> und <span class="hl">p = 10 GE/ME → x = 9 ME</span>.<br>
+      Ermitteln Sie p(x) = ax + b (lineare Preis-Absatz-Funktion).
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">Steigung a =</span>
+      <input class="fill" id="fi1-a" placeholder="?" style="width:100px">
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">y-Abschnitt b ≈</span>
+      <input class="fill" id="fi1-b" placeholder="?" style="width:100px">
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-check" onclick="checkFill1()">Prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp1-1')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp1-1">a = (p₂−p₁)/(x₂−x₁) = (10−25)/(9−2) = −15/7 ≈ −2,14. Dann b = p₁ − a·x₁</div>
+    <div class="feedback" id="fb-fi1"></div>
+  </div>
+
+  <!-- 0-6: Wahr/Falsch — Grundbegriffe -->
+  <div class="card">
+    <div class="card-nr">Wahr oder Falsch · Grundbegriffe Monopol</div>
+    <div class="card-q">Entscheiden Sie für jede Aussage: Wahr oder Falsch?</div>
+    <div id="tf0-wrap">
+      <div class="tf-row">
+        <div class="tf-stmt">Der Erlös ist immer größer als der Gewinn.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf0-1',this,'F')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf0-1',this,'F')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf0-1" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Am Cournot'schen Punkt gilt: E'(x) = 0.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf0-2',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf0-2',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf0-2" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Bei einer linearen Preis-Absatz-Funktion ist die Erlösfunktion quadratisch.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf0-3',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf0-3',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf0-3" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Der Gewinn ist maximal, wenn G'(x) = 0 und G''(x) > 0.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf0-4',this,'F')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf0-4',this,'F')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf0-4" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+    </div>
+    <div style="margin:12px 0">
+      <button class="btn btn-check" onclick="checkAllTF0()">Alle auswerten</button>
+    </div>
+    <div class="feedback" id="fb-tf0"></div>
+  </div>
+
+  <!-- 0-7: Fehler finden -->
+  <div class="card">
+    <div class="card-nr">Fehler finden · Rechenweg überprüfen</div>
+    <div class="card-q">
+      In welchem Schritt steckt der Fehler?<br>
+      <span style="font-size:13px;color:#666">p(x) = −2x + 10, K(x) = 0,5x² + 2x + 4. Gesucht: Gewinn bei x = 3.</span>
+    </div>
+    <div class="err-line" id="err0-1" onclick="selectErr('err0',this,'err0-1')">① E(x) = p(x)·x = −2x² + 10x</div>
+    <div class="err-line" id="err0-2" onclick="selectErr('err0',this,'err0-2')">② E(3) = −2·9 + 10·3 = −18 + 30 = 12 GE</div>
+    <div class="err-line" id="err0-3" onclick="selectErr('err0',this,'err0-3')">③ K(3) = 0,5·9 + 2·3 + 4 = 4,5 + 6 + 4 = 14,5 GE</div>
+    <div class="err-line" id="err0-4" onclick="selectErr('err0',this,'err0-4')">④ G(3) = E(3) + K(3) = 12 + 14,5 = 26,5 GE ← FEHLER hier?</div>
+    <div style="margin:12px 0">
+      <button class="btn btn-check" onclick="checkErr('err0','err0-4','fb-err0')">Prüfen</button>
+    </div>
+    <div class="feedback" id="fb-err0"></div>
+  </div>
+
+  <!-- 0-8: Zuordnung Begriff → Formel -->
+  <div class="card">
+    <div class="card-nr">Zuordnung · Begriff und Formel zusammenbringen</div>
+    <div class="card-q">Verbinden Sie jeden Begriff mit der richtigen Formel (je einmal anklicken links, dann rechts):</div>
+    <div class="match-wrap">
+      <div class="match-left">
+        <div class="match-item" id="ml0-1" onclick="matchClick('m0','ml0-1','left')">Erlösfunktion</div>
+        <div class="match-item" id="ml0-2" onclick="matchClick('m0','ml0-2','left')">Gewinnfunktion</div>
+        <div class="match-item" id="ml0-3" onclick="matchClick('m0','ml0-3','left')">Grenzerlös</div>
+        <div class="match-item" id="ml0-4" onclick="matchClick('m0','ml0-4','left')">Cournot-Bedingung</div>
+      </div>
+      <div class="match-right">
+        <div class="match-item" id="mr0-A" onclick="matchClick('m0','mr0-A','right')" data-pair="ml0-1">E(x) = p(x) · x</div>
+        <div class="match-item" id="mr0-B" onclick="matchClick('m0','mr0-B','right')" data-pair="ml0-3">E'(x) = p(x) + x·p'(x)</div>
+        <div class="match-item" id="mr0-C" onclick="matchClick('m0','mr0-C','right')" data-pair="ml0-4">E'(x) = 0</div>
+        <div class="match-item" id="mr0-D" onclick="matchClick('m0','mr0-D','right')" data-pair="ml0-2">G(x) = E(x) − K(x)</div>
+      </div>
+    </div>
+    <div class="feedback" id="fb-m0"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SEKTION 1 — KURVENDISKUSSION
+═══════════════════════════════════════════════════ -->
+<div class="section" id="sec-1">
+  <div class="sec-hdr">
+    <div class="sec-label">Aufgabe 2</div>
+    <h2 class="sec-title">Vollständige Kurvendiskussion</h2>
+    <p class="sec-sub">Ableitungen, Extrema, Wendepunkte — Drag & Drop und Lückentext.</p>
+    <div class="progress-bar"><div class="progress-fill" id="prog-1" style="width:0%"></div></div>
+  </div>
+
+  <!-- 1-1: Drag-Drop — Begriffe zuordnen -->
+  <div class="card">
+    <div class="card-nr">Drag & Drop · Begriffe zuordnen</div>
+    <div class="card-q">
+      Ziehen Sie die richtigen Begriffe in die Lücken. <span class="hl">f(t) = −0,05t⁴ + t² + 55</span>
+    </div>
+    <div class="dd-source" id="dd1-src">
+      <div class="dd-chip" draggable="true" id="chip-achsen" ondragstart="dragStart(event,'Achsensymmetrie')">Achsensymmetrie</div>
+      <div class="dd-chip" draggable="true" id="chip-punkt" ondragstart="dragStart(event,'Punktsymmetrie')">Punktsymmetrie</div>
+      <div class="dd-chip" draggable="true" id="chip-max" ondragstart="dragStart(event,'Maximum')">Maximum</div>
+      <div class="dd-chip" draggable="true" id="chip-min" ondragstart="dragStart(event,'Minimum')">Minimum</div>
+      <div class="dd-chip" draggable="true" id="chip-wp" ondragstart="dragStart(event,'Wendepunkt')">Wendepunkt</div>
+      <div class="dd-chip" draggable="true" id="chip-ns" ondragstart="dragStart(event,'Nullstelle')">Nullstelle</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:14px;min-width:240px">f(−t) = f(t) → die Funktion hat …</span>
+        <div class="dd-target" id="dd1-t1" data-answer="Achsensymmetrie" ondragover="dragOver(event)" ondrop="drop(event,'dd1-t1')">Ablegen</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:14px;min-width:240px">f'(√10) = 0, f''(√10) &lt; 0 → der Punkt ist ein …</span>
+        <div class="dd-target" id="dd1-t2" data-answer="Maximum" ondragover="dragOver(event)" ondrop="drop(event,'dd1-t2')">Ablegen</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:14px;min-width:240px">f''(t) = 0 und Vorzeichenwechsel → der Punkt ist ein …</span>
+        <div class="dd-target" id="dd1-t3" data-answer="Wendepunkt" ondragover="dragOver(event)" ondrop="drop(event,'dd1-t3')">Ablegen</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:14px;min-width:240px">f(t) = 0: der Punkt, wo der Graph die t-Achse schneidet, heißt …</span>
+        <div class="dd-target" id="dd1-t4" data-answer="Nullstelle" ondragover="dragOver(event)" ondrop="drop(event,'dd1-t4')">Ablegen</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkDD1()">Auswertung</button>
+      <button class="btn btn-reset" onclick="resetDD1()">↺ Zurücksetzen</button>
+    </div>
+    <div class="feedback" id="fb-dd1"></div>
+  </div>
+
+  <!-- 1-2: Step-by-step — Ableitungen + Extrema -->
+  <div class="card">
+    <div class="card-nr">Schritt-für-Schritt · Ableitungen und Extrema</div>
+    <div class="card-q">
+      <span class="hl">f(t) = −0,05t⁴ + t² + 55</span>. Füllen Sie die Ableitungen und Extremwerte aus:
+    </div>
+    <div class="step-box">
+      <div class="step-row">
+        <div class="step-el">f'(t)</div>
+        <div class="step-formula">Ableitung von f(t)</div>
+        <div class="step-answer"><input class="step-in" id="kd-1" placeholder="?" style="width:200px"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">f''(t)</div>
+        <div class="step-formula">Ableitung von f'(t)</div>
+        <div class="step-answer"><input class="step-in" id="kd-2" placeholder="?" style="width:200px"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">t_E</div>
+        <div class="step-formula">f'(t)=0 → −0,2t(t²−10)=0 → t=?</div>
+        <div class="step-answer">t = 0, ±<input class="step-in" id="kd-3" placeholder="?" style="width:60px"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">f(√10)</div>
+        <div class="step-formula">Höchste Temperatur (max. Funktionswert)</div>
+        <div class="step-answer"><input class="step-in" id="kd-4" placeholder="?"> °C</div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">f(0)</div>
+        <div class="step-formula">Temperatur zu Beginn (t=0)</div>
+        <div class="step-answer"><input class="step-in" id="kd-5" placeholder="?"> °C</div>
+      </div>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-check" onclick="checkKD()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-kd')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-kd">f'(t) = −0,2t³ + 2t. f''(t) = −0,6t² + 2. f(√10) = −0,05·100 + 10 + 55 = ?. f(0) = 55.</div>
+    <div class="feedback" id="fb-kd"></div>
+  </div>
+
+  <!-- 1-3: MC — Symmetrie -->
+  <div class="card">
+    <div class="card-nr">Quiz · Symmetrie und Wendepunkte</div>
+    <div class="card-q">
+      <span class="hl">f(t) = −0,05t⁴ + t² + 55</span>: Bei welchem t-Wert liegt ein Wendepunkt?
+    </div>
+    <div class="options" id="mc-kd-opts">
+      <div class="opt" onclick="checkMC('mc-kd',this,0)">A) t = 0</div>
+      <div class="opt" onclick="checkMC('mc-kd',this,1)">B) t = √10 ≈ 3,16</div>
+      <div class="opt" onclick="checkMC('mc-kd',this,2)">C) t = √(10/3) ≈ 1,83</div>
+      <div class="opt" onclick="checkMC('mc-kd',this,3)">D) t = 5</div>
+    </div>
+    <div class="feedback" id="fb-mc-kd"></div>
+  </div>
+
+  <!-- 1-4: Sortieren — Schritte der Kurvendiskussion -->
+  <div class="card">
+    <div class="card-nr">Sortieren · Schritte der Kurvendiskussion in die richtige Reihenfolge</div>
+    <div class="card-q">Ziehen Sie die Schritte in die richtige Reihenfolge (Drag & Drop):</div>
+    <div class="sort-list" id="sort1" ondragover="sortOver(event)">
+      <div class="sort-item" draggable="true" data-order="3" ondragstart="sortStart(event)" ondragend="sortEnd(event)"><span class="sort-handle">☰</span> Extrempunkte berechnen: f'(x)=0 lösen, f''(x) einsetzen</div>
+      <div class="sort-item" draggable="true" data-order="1" ondragstart="sortStart(event)" ondragend="sortEnd(event)"><span class="sort-handle">☰</span> Ableitungen f'(x) und f''(x) bestimmen</div>
+      <div class="sort-item" draggable="true" data-order="5" ondragstart="sortStart(event)" ondragend="sortEnd(event)"><span class="sort-handle">☰</span> Skizze des Graphen erstellen</div>
+      <div class="sort-item" draggable="true" data-order="4" ondragstart="sortStart(event)" ondragend="sortEnd(event)"><span class="sort-handle">☰</span> Wendepunkte berechnen: f''(x)=0 lösen</div>
+      <div class="sort-item" draggable="true" data-order="2" ondragstart="sortStart(event)" ondragend="sortEnd(event)"><span class="sort-handle">☰</span> Symmetrie, Nullstellen, y-Achsenschnittpunkt bestimmen</div>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkSort('sort1','fb-sort1')">Reihenfolge prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-sort1')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-sort1">Die richtige Reihenfolge: 1. Ableitungen → 2. Symmetrie/Nullstellen → 3. Extrempunkte → 4. Wendepunkte → 5. Skizze</div>
+    <div class="feedback" id="fb-sort1"></div>
+  </div>
+
+  <!-- 1-5: Tabelle ausfüllen — Funktionswerte -->
+  <div class="card">
+    <div class="card-nr">Tabelle ausfüllen · Funktionswerte berechnen</div>
+    <div class="card-q">
+      Berechnen Sie für <span class="hl">f(t) = −0,05t⁴ + t² + 55</span> die fehlenden Werte:
+    </div>
+    <table class="input-table">
+      <tr>
+        <th>t</th><th>−2</th><th>0</th><th>2</th><th>√10 ≈ 3,16</th>
+      </tr>
+      <tr>
+        <td style="font-weight:700;background:#eef">f(t)</td>
+        <td><input id="tab1-1" placeholder="?"></td>
+        <td><input id="tab1-2" placeholder="?"></td>
+        <td><input id="tab1-3" placeholder="?"></td>
+        <td><input id="tab1-4" placeholder="?"></td>
+      </tr>
+    </table>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkTab1()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-tab1')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-tab1">f(−2)=−0,05·16+4+55=54,2. f(0)=55. f(2)=54,2. f(√10)=−0,05·100+10+55=60.</div>
+    <div class="feedback" id="fb-tab1"></div>
+  </div>
+
+  <!-- 1-6: Wahr/Falsch — Kurvendiskussion -->
+  <div class="card">
+    <div class="card-nr">Wahr oder Falsch · Kurvendiskussion Aussagen</div>
+    <div class="card-q">
+      <span class="hl">f(t) = −0,05t⁴ + t² + 55</span>. Wahr oder Falsch?
+    </div>
+    <div>
+      <div class="tf-row">
+        <div class="tf-stmt">Die Funktion ist achsensymmetrisch zur f(t)-Achse.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf1-1',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf1-1',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf1-1" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Der Hochpunkt liegt bei t = 0.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf1-2',this,'F')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf1-2',this,'F')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf1-2" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Die maximale Temperatur beträgt 60°C.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf1-3',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf1-3',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf1-3" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">An einem Wendepunkt ist f''(t) &lt; 0.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf1-4',this,'F')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf1-4',this,'F')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf1-4" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+    </div>
+    <div class="feedback" id="fb-tf1"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SEKTION 2 — GEWINNANALYSE
+═══════════════════════════════════════════════════ -->
+<div class="section" id="sec-2">
+  <div class="sec-hdr">
+    <div class="sec-label">Aufgabe 3</div>
+    <h2 class="sec-title">Gewinnfunktion, Gewinnschwelle und Grenzkosten</h2>
+    <p class="sec-sub">Lückentext und interaktive Schritte zur Gewinnanalyse.</p>
+    <div class="progress-bar"><div class="progress-fill" id="prog-2" style="width:0%"></div></div>
+  </div>
+
+  <!-- 2-1: Fill-in — Gewinnfunktion aufstellen -->
+  <div class="card">
+    <div class="card-nr">Lückentext · Gewinnfunktion</div>
+    <div class="card-q">
+      <span class="hl">K(x) = x³ − 4x² + 6x + 6</span>, <span class="hl">E(x) = 14x</span>.<br>
+      Stellen Sie G(x) = E(x) − K(x) auf:
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">G(x) = 14x − (x³ − 4x² + 6x + 6) =</span>
+    </div>
+    <div class="fill-row" style="margin-top:4px">
+      <span class="fill-label">G(x) = −x³ +</span>
+      <input class="fill" id="gw-a" placeholder="?" maxlength="3" style="width:60px">
+      <span class="fill-label">x² +</span>
+      <input class="fill" id="gw-b" placeholder="?" maxlength="3" style="width:60px">
+      <span class="fill-label">x −</span>
+      <input class="fill" id="gw-c" placeholder="?" maxlength="3" style="width:60px">
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkGW()">Prüfen</button>
+    </div>
+    <div class="feedback" id="fb-gw"></div>
+  </div>
+
+  <!-- 2-2: MC — Gewinnschwelle -->
+  <div class="card">
+    <div class="card-nr">Quiz · Gewinnschwelle und -grenze</div>
+    <div class="card-q">
+      <span class="hl">G(x) = −x³ + 4x² + 8x − 6</span>. G(0) = −6 (Verlust). Wo beginnt die Gewinnzone ungefähr?
+    </div>
+    <div class="options" id="mc-gs-opts">
+      <div class="opt" onclick="checkMC('mc-gs',this,0)">A) Bei ca. x ≈ 0,59 ME (Gewinnschwelle per TR)</div>
+      <div class="opt" onclick="checkMC('mc-gs',this,1)">B) Bei x = 0 ME</div>
+      <div class="opt" onclick="checkMC('mc-gs',this,2)">C) Bei x = 4 ME</div>
+      <div class="opt" onclick="checkMC('mc-gs',this,3)">D) Bei x = 6 ME</div>
+    </div>
+    <div class="feedback" id="fb-mc-gs"></div>
+  </div>
+
+  <!-- 2-3: Step-by-step — Grenzkosten -->
+  <div class="card">
+    <div class="card-nr">Schritt-für-Schritt · Minimale Grenzkosten</div>
+    <div class="card-q">
+      <span class="hl">K(x) = x³ − 4x² + 6x + 6</span>. Bestimmen Sie die minimalen Grenzkosten:
+    </div>
+    <div class="step-box">
+      <div class="step-row">
+        <div class="step-el">K'(x)</div>
+        <div class="step-formula">Grenzkosten = Ableitung von K(x)</div>
+        <div class="step-answer">K'(x) = <input class="step-in" id="gk-1" placeholder="?" style="width:180px"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">K''(x)</div>
+        <div class="step-formula">Ableitung von K'(x)</div>
+        <div class="step-answer">K''(x) = <input class="step-in" id="gk-2" placeholder="?" style="width:140px"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">x_min</div>
+        <div class="step-formula">K''(x) = 0 setzen → 6x − 8 = 0</div>
+        <div class="step-answer">x = <input class="step-in" id="gk-3" placeholder="?" style="width:80px"> ME</div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">K'(x_min)</div>
+        <div class="step-formula">Min. Grenzkosten einsetzen (Bruch ok)</div>
+        <div class="step-answer">≈ <input class="step-in" id="gk-4" placeholder="?" style="width:80px"> GE/ME</div>
+      </div>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkGK()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-gk')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-gk">K'(x) = 3x²−8x+6. K''(x)=6x−8=0 → x=4/3≈1,33. K'(4/3) = 3·(16/9)−8·(4/3)+6 = 16/3−32/3+18/3 = 2/3 ≈ 0,67</div>
+    <div class="feedback" id="fb-gk"></div>
+  </div>
+
+  <!-- 2-4: MC — Ratschlag -->
+  <div class="card">
+    <div class="card-nr">Quiz · Ratschlag zur Produktion</div>
+    <div class="card-q">
+      <span class="hl">G(0,5) = −0,125 + 1 + 4 − 6 = −1,125 GE</span>. Was raten Sie dem Unternehmer für x = 0,5 ME?
+    </div>
+    <div class="options" id="mc-rat-opts">
+      <div class="opt" onclick="checkMC('mc-rat',this,0)">A) Empfehlenswert — die Fixkosten werden gedeckt.</div>
+      <div class="opt" onclick="checkMC('mc-rat',this,1)">B) Nicht empfehlenswert — das Unternehmen würde einen Verlust von 1,125 GE erwirtschaften.</div>
+      <div class="opt" onclick="checkMC('mc-rat',this,2)">C) Neutral — erst bei mehr Daten entscheidbar.</div>
+    </div>
+    <div class="feedback" id="fb-mc-rat"></div>
+  </div>
+
+  <!-- 2-5: Tabelle — Gewinnwerte berechnen -->
+  <div class="card">
+    <div class="card-nr">Tabelle ausfüllen · Gewinn bei verschiedenen Mengen</div>
+    <div class="card-q">
+      <span class="hl">G(x) = −x³ + 4x² + 8x − 6</span>. Berechnen Sie G(x) für:
+    </div>
+    <table class="input-table">
+      <tr><th>x (ME)</th><th>0</th><th>1</th><th>3</th><th>5</th><th>6</th></tr>
+      <tr>
+        <td style="font-weight:700;background:#eef">G(x) (GE)</td>
+        <td><input id="gtab-0" placeholder="?"></td>
+        <td><input id="gtab-1" placeholder="?"></td>
+        <td><input id="gtab-3" placeholder="?"></td>
+        <td><input id="gtab-5" placeholder="?"></td>
+        <td><input id="gtab-6" placeholder="?"></td>
+      </tr>
+    </table>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkGTab()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-gtab')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-gtab">G(0)=−6. G(1)=−1+4+8−6=5. G(3)=−27+36+24−6=27. G(5)=−125+100+40−6=9. G(6)=−216+144+48−6=−30.</div>
+    <div class="feedback" id="fb-gtab"></div>
+  </div>
+
+  <!-- 2-6: Fehler finden — Gewinnmaximum -->
+  <div class="card">
+    <div class="card-nr">Fehler finden · Gewinnmaximum berechnen</div>
+    <div class="card-q">
+      In welchem Schritt steckt der Fehler beim Berechnen des Gewinnmaximums?<br>
+      <span style="font-size:13px;color:#666">G(x) = −x³ + 4x² + 8x − 6</span>
+    </div>
+    <div class="err-line" id="err2-1" onclick="selectErr('err2',this,'err2-1')">① G'(x) = −3x² + 8x + 8</div>
+    <div class="err-line" id="err2-2" onclick="selectErr('err2',this,'err2-2')">② G'(x) = 0 → 3x² − 8x − 8 = 0</div>
+    <div class="err-line" id="err2-3" onclick="selectErr('err2',this,'err2-3')">③ x = (8 ± √(64 + 96)) / 6 = (8 ± √160) / 6</div>
+    <div class="err-line" id="err2-4" onclick="selectErr('err2',this,'err2-4')">④ x_opt = (8 + √160) / 6 ≈ 3,44 ME — KEIN FEHLER in diesem Schritt</div>
+    <div class="err-line" id="err2-5" onclick="selectErr('err2',this,'err2-5')">⑤ G''(x) = −6x + 8. G''(3,44) = −20,64 + 8 = −12,64 → Maximum ✓</div>
+    <div style="font-size:13px;color:#888;margin-top:8px">Hinweis: Es gibt <strong>keinen</strong> Fehler — klicken Sie auf „Kein Fehler"!</div>
+    <button class="btn btn-secondary" style="margin:8px 0;font-size:13px;padding:8px 14px;background:#f0f0f0;border:1.5px solid #ccc;border-radius:8px;cursor:pointer" onclick="checkErr('err2',null,'fb-err2',true)">Kein Fehler in der Rechnung</button>
+    <div style="margin:8px 0">
+      <button class="btn btn-check" onclick="checkErr('err2','err2-selected','fb-err2')">Gewählten Schritt prüfen</button>
+    </div>
+    <div class="feedback" id="fb-err2"></div>
+  </div>
+
+  <!-- 2-7: Zuordnung — Begriffe Gewinnanalyse -->
+  <div class="card">
+    <div class="card-nr">Zuordnung · Begriffe der Gewinnanalyse</div>
+    <div class="card-q">Ordnen Sie den Begriffen die richtige Bedeutung zu:</div>
+    <div class="match-wrap">
+      <div class="match-left">
+        <div class="match-item" id="ml2-1" onclick="matchClick('m2','ml2-1','left')">Gewinnschwelle</div>
+        <div class="match-item" id="ml2-2" onclick="matchClick('m2','ml2-2','left')">Gewinngrenze</div>
+        <div class="match-item" id="ml2-3" onclick="matchClick('m2','ml2-3','left')">Min. Grenzkosten</div>
+        <div class="match-item" id="ml2-4" onclick="matchClick('m2','ml2-4','left')">Gewinnmaximum</div>
+      </div>
+      <div class="match-right">
+        <div class="match-item" id="mr2-A" onclick="matchClick('m2','mr2-A','right')" data-pair="ml2-3">Tiefpunkt der Grenzkostenfunktion K'(x)</div>
+        <div class="match-item" id="mr2-B" onclick="matchClick('m2','mr2-B','right')" data-pair="ml2-1">Erste Nullstelle von G(x) (G=0, von Verlust zu Gewinn)</div>
+        <div class="match-item" id="mr2-C" onclick="matchClick('m2','mr2-C','right')" data-pair="ml2-4">Hochpunkt der Gewinnfunktion G(x)</div>
+        <div class="match-item" id="mr2-D" onclick="matchClick('m2','mr2-D','right')" data-pair="ml2-2">Zweite Nullstelle von G(x) (Gewinn wird wieder 0)</div>
+      </div>
+    </div>
+    <div class="feedback" id="fb-m2"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SEKTION 3 — MARKT & INTEGRAL
+═══════════════════════════════════════════════════ -->
+<div class="section" id="sec-3">
+  <div class="sec-hdr">
+    <div class="sec-label">Aufgabe 4</div>
+    <h2 class="sec-title">Marktgleichgewicht, Renten und Integralrechnung</h2>
+    <p class="sec-sub">Quiz und Schritte zu Konsumenten- und Produzentenrente.</p>
+    <div class="progress-bar"><div class="progress-fill" id="prog-3" style="width:0%"></div></div>
+  </div>
+
+  <!-- 3-1: Step-by-step — Marktgleichgewicht -->
+  <div class="card">
+    <div class="card-nr">Schritt-für-Schritt · Marktgleichgewicht</div>
+    <div class="card-q">
+      <span class="hl">p_N(x) = −0,5x² + 8</span>, <span class="hl">p_A(x) = 0,5x² + 2</span>. Bestimmen Sie das Marktgleichgewicht:
+    </div>
+    <div class="step-box">
+      <div class="step-row">
+        <div class="step-el">Ansatz</div>
+        <div class="step-formula">p_N(x) = p_A(x) setzen</div>
+        <div class="step-answer" style="font-size:13px">−0,5x² + 8 = 0,5x² + 2</div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">x²</div>
+        <div class="step-formula">Umstellen → x² = ?</div>
+        <div class="step-answer">x² = <input class="step-in" id="mg-1" placeholder="?"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">x_G</div>
+        <div class="step-formula">√ ziehen (x > 0)</div>
+        <div class="step-answer">x_G = √<input class="step-in" id="mg-2" placeholder="?" style="width:50px"> ≈ <input class="step-in" id="mg-3" placeholder="?" style="width:60px"> ME</div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">p_G</div>
+        <div class="step-formula">p_A(x_G) = 0,5·x² + 2</div>
+        <div class="step-answer">p_G = <input class="step-in" id="mg-4" placeholder="?"> GE/ME</div>
+      </div>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkMG()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-mg')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-mg">−0,5x²+8=0,5x²+2 → 6=x² → x=√6≈2,45. p_G=0,5·6+2=5 GE/ME</div>
+    <div class="feedback" id="fb-mg"></div>
+  </div>
+
+  <!-- 3-2: MC — Konsumentenrente -->
+  <div class="card">
+    <div class="card-nr">Quiz · Konsumentenrente</div>
+    <div class="card-q">
+      Marktgleichgewicht: x_G = √6, p_G = 5. Welche Formel berechnet die Konsumentenrente (KR)?
+    </div>
+    <div class="options" id="mc-kr-opts">
+      <div class="opt" onclick="checkMC('mc-kr',this,0)">A) KR = ∫₀^√6 p_A(x) dx</div>
+      <div class="opt" onclick="checkMC('mc-kr',this,1)">B) KR = ∫₀^√6 (p_N(x) − p_G) dx</div>
+      <div class="opt" onclick="checkMC('mc-kr',this,2)">C) KR = ∫₀^√6 (p_G − p_A(x)) dx</div>
+      <div class="opt" onclick="checkMC('mc-kr',this,3)">D) KR = p_G · x_G</div>
+    </div>
+    <div class="feedback" id="fb-mc-kr"></div>
+  </div>
+
+  <!-- 3-3: Fill-in — KR berechnen -->
+  <div class="card">
+    <div class="card-nr">Lückentext · Konsumentenrente berechnen</div>
+    <div class="card-q">
+      KR = ∫₀^√6 (−0,5x² + 3) dx = [−x³/6 + 3x]₀^√6. Berechnen Sie:
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">−(√6)³/6 + 3√6 = −6√6/6 + 3√6 = −√6 + 3√6 =</span>
+      <input class="fill" id="kr-1" placeholder="?" style="width:70px">
+      <span class="fill-label">√6</span>
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">KR ≈</span>
+      <input class="fill" id="kr-2" placeholder="?" style="width:80px">
+      <span class="fill-label">GE (auf 2 Dezimalstellen)</span>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkKR()">Prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-kr')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-kr">−√6 + 3√6 = 2√6. 2√6 = 2·2,449 ≈ 4,90 GE</div>
+    <div class="feedback" id="fb-kr"></div>
+  </div>
+
+  <!-- 3-4: MC — Stammfunktion -->
+  <div class="card">
+    <div class="card-nr">Quiz · Stammfunktion</div>
+    <div class="card-q">
+      Welche Stammfunktion gehört zu <span class="hl">p_N(x) = −0,5x² + 8</span>?
+    </div>
+    <div class="options" id="mc-sf-opts">
+      <div class="opt" onclick="checkMC('mc-sf',this,0)">A) F(x) = −x³ + 8x + C</div>
+      <div class="opt" onclick="checkMC('mc-sf',this,1)">B) F(x) = −x³/6 + 8x + C</div>
+      <div class="opt" onclick="checkMC('mc-sf',this,2)">C) F(x) = −x² + 8 + C</div>
+      <div class="opt" onclick="checkMC('mc-sf',this,3)">D) F(x) = 0,5x³ + 8x + C</div>
+    </div>
+    <div class="feedback" id="fb-mc-sf"></div>
+  </div>
+
+  <!-- 3-5: Zuordnung — Rentenkonzepte -->
+  <div class="card">
+    <div class="card-nr">Zuordnung · Konsumenten- und Produzentenrente</div>
+    <div class="card-q">Ordnen Sie die Aussagen den richtigen Begriffen zu:</div>
+    <div class="match-wrap">
+      <div class="match-left">
+        <div class="match-item" id="ml3-1" onclick="matchClick('m3','ml3-1','left')">Konsumentenrente</div>
+        <div class="match-item" id="ml3-2" onclick="matchClick('m3','ml3-2','left')">Produzentenrente</div>
+        <div class="match-item" id="ml3-3" onclick="matchClick('m3','ml3-3','left')">Marktgleichgewicht</div>
+        <div class="match-item" id="ml3-4" onclick="matchClick('m3','ml3-4','left')">Umsatz im Gleichgewicht</div>
+      </div>
+      <div class="match-right">
+        <div class="match-item" id="mr3-A" onclick="matchClick('m3','mr3-A','right')" data-pair="ml3-3">Schnittpunkt von Angebot und Nachfrage</div>
+        <div class="match-item" id="mr3-B" onclick="matchClick('m3','mr3-B','right')" data-pair="ml3-1">Ersparte Ausgaben der Käufer gegenüber dem Marktpreis</div>
+        <div class="match-item" id="mr3-C" onclick="matchClick('m3','mr3-C','right')" data-pair="ml3-4">x_G · p_G</div>
+        <div class="match-item" id="mr3-D" onclick="matchClick('m3','mr3-D','right')" data-pair="ml3-2">Zusatzgewinn der Anbieter durch den Marktpreis</div>
+      </div>
+    </div>
+    <div class="feedback" id="fb-m3"></div>
+  </div>
+
+  <!-- 3-6: Tabelle — Integralwerte -->
+  <div class="card">
+    <div class="card-nr">Tabelle ausfüllen · Integral berechnen</div>
+    <div class="card-q">
+      Berechnen Sie für <span class="hl">F(x) = −x³/6 + 8x</span> die bestimmten Integrale:
+    </div>
+    <table class="input-table">
+      <tr><th>Integral</th><th>∫₀¹ p_N dx</th><th>∫₀² p_N dx</th><th>∫₀^√6 p_N dx</th></tr>
+      <tr>
+        <td style="font-weight:700;background:#eef">Wert (GE)</td>
+        <td><input id="int-1" placeholder="?"></td>
+        <td><input id="int-2" placeholder="?"></td>
+        <td><input id="int-3" placeholder="?"></td>
+      </tr>
+    </table>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkIntTab()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-int')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-int">F(x)=−x³/6+8x. F(1)=−1/6+8≈7,83. F(2)=−8/6+16≈14,67. F(√6)=−6√6/6+8√6=−√6+8√6=7√6≈17,15</div>
+    <div class="feedback" id="fb-int"></div>
+  </div>
+
+  <!-- 3-7: Wahr/Falsch — Integralrechnung -->
+  <div class="card">
+    <div class="card-nr">Wahr oder Falsch · Integralrechnung</div>
+    <div class="card-q">Wahr oder Falsch?</div>
+    <div>
+      <div class="tf-row">
+        <div class="tf-stmt">Die Stammfunktion von f(x)=x² ist F(x)=x³/3 + C.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf3-1',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf3-1',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf3-1" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Konsumenten- und Produzentenrente sind bei p_N = −0,5x²+8 und p_A = 0,5x²+2 gleich groß.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf3-2',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf3-2',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf3-2" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Das bestimmte Integral ∫ₐᵇ f(x)dx gibt immer die Fläche unter dem Graphen an.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf3-3',this,'F')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf3-3',this,'F')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf3-3" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+    </div>
+    <div class="feedback" id="fb-tf3"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SEKTION 4 — LINEARE ALGEBRA
+═══════════════════════════════════════════════════ -->
+<div class="section" id="sec-4">
+  <div class="sec-hdr">
+    <div class="sec-label">Aufgabe 5</div>
+    <h2 class="sec-title">Lineare Algebra – Produktionsverflechtungen</h2>
+    <p class="sec-sub">Matrizen aufstellen, multiplizieren und Bestellmengen berechnen.</p>
+    <div class="progress-bar"><div class="progress-fill" id="prog-4" style="width:0%"></div></div>
+  </div>
+
+  <!-- 4-1: MC — Verflechtungsdiagramm lesen -->
+  <div class="card">
+    <div class="card-nr">Quiz · Verflechtungsdiagramm</div>
+    <div class="card-q">
+      In einem Verflechtungsdiagramm zeigt ein Pfeil von R1 nach Z2 mit dem Wert 3. Was bedeutet das für die Matrix A_RZ?
+    </div>
+    <div class="options" id="mc-vd-opts">
+      <div class="opt" onclick="checkMC('mc-vd',this,0)">A) a_RZ(R1,Z2) = 3 — 3 Einheiten von Z2 fließen in R1</div>
+      <div class="opt" onclick="checkMC('mc-vd',this,1)">B) a_RZ(R1,Z2) = 3 — 3 Einheiten von R1 werden für 1 Einheit Z2 benötigt</div>
+      <div class="opt" onclick="checkMC('mc-vd',this,2)">C) Die Matrix hat kein Element an dieser Position</div>
+      <div class="opt" onclick="checkMC('mc-vd',this,3)">D) R1 und Z2 haben keine Verbindung</div>
+    </div>
+    <div class="feedback" id="fb-mc-vd"></div>
+  </div>
+
+  <!-- 4-2: Drag-Drop — Matrix BZE aufstellen -->
+  <div class="card">
+    <div class="card-nr">Drag & Drop · Matrix B_ZE aufstellen</div>
+    <div class="card-q">
+      Aus der Tabelle: Z1→E1: 1, Z1→E2: 2, Z1→E3: 1, Z2→E1: 3, Z2→E2: 1, Z2→E3: 2.<br>
+      Ordnen Sie die richtigen Zahlenwerte den Matrixpositionen zu:
+    </div>
+    <div class="dd-source" id="dd2-src">
+      <div class="dd-chip" draggable="true" id="ch-1a" ondragstart="dragStart(event,'1')">1</div>
+      <div class="dd-chip" draggable="true" id="ch-2a" ondragstart="dragStart(event,'2')">2</div>
+      <div class="dd-chip" draggable="true" id="ch-3a" ondragstart="dragStart(event,'3')">3</div>
+    </div>
+    <div style="margin:14px 0">
+      <div style="font-size:13px;color:#666;margin-bottom:8px">B_ZE (Zeilen=Z1,Z2 | Spalten=E1,E2,E3):</div>
+      <table style="border-collapse:collapse;font-size:14px">
+        <tr>
+          <td style="padding:4px 8px;background:#eef;font-weight:700;border:1px solid #ccc"></td>
+          <td style="padding:4px 12px;background:#1F4E79;color:#fff;font-weight:700;border:1px solid #ccc;text-align:center">E1</td>
+          <td style="padding:4px 12px;background:#1F4E79;color:#fff;font-weight:700;border:1px solid #ccc;text-align:center">E2</td>
+          <td style="padding:4px 12px;background:#1F4E79;color:#fff;font-weight:700;border:1px solid #ccc;text-align:center">E3</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 8px;background:#1F4E79;color:#fff;font-weight:700;border:1px solid #ccc">Z1</td>
+          <td style="border:1px solid #ccc;padding:4px"><div class="dd-target" id="dd2-11" data-answer="1" ondragover="dragOver(event)" ondrop="drop(event,'dd2-11')" style="min-width:50px;min-height:36px">?</div></td>
+          <td style="border:1px solid #ccc;padding:4px"><div class="dd-target" id="dd2-12" data-answer="2" ondragover="dragOver(event)" ondrop="drop(event,'dd2-12')" style="min-width:50px;min-height:36px">?</div></td>
+          <td style="border:1px solid #ccc;padding:4px"><div class="dd-target" id="dd2-13" data-answer="1" ondragover="dragOver(event)" ondrop="drop(event,'dd2-13')" style="min-width:50px;min-height:36px">?</div></td>
+        </tr>
+        <tr>
+          <td style="padding:4px 8px;background:#1F4E79;color:#fff;font-weight:700;border:1px solid #ccc">Z2</td>
+          <td style="border:1px solid #ccc;padding:4px"><div class="dd-target" id="dd2-21" data-answer="3" ondragover="dragOver(event)" ondrop="drop(event,'dd2-21')" style="min-width:50px;min-height:36px">?</div></td>
+          <td style="border:1px solid #ccc;padding:4px"><div class="dd-target" id="dd2-22" data-answer="1" ondragover="dragOver(event)" ondrop="drop(event,'dd2-22')" style="min-width:50px;min-height:36px">?</div></td>
+          <td style="border:1px solid #ccc;padding:4px"><div class="dd-target" id="dd2-23" data-answer="2" ondragover="dragOver(event)" ondrop="drop(event,'dd2-23')" style="min-width:50px;min-height:36px">?</div></td>
+        </tr>
+      </table>
+    </div>
+    <div style="font-size:12px;color:#999;margin-bottom:8px">Hinweis: Gleiche Zahlen können mehrfach verwendet werden — ziehe den Chip erneut aus der Quelle.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkDD2()">Auswertung</button>
+      <button class="btn btn-reset" onclick="resetDD2()">↺ Zurücksetzen</button>
+    </div>
+    <div class="feedback" id="fb-dd2"></div>
+  </div>
+
+  <!-- 4-3: Step-by-step — Matrizenmultiplikation CRE -->
+  <div class="card">
+    <div class="card-nr">Schritt-für-Schritt · C_RE = A_RZ · B_ZE</div>
+    <div class="card-q">
+      Berechnen Sie ausgewählte Elemente von C_RE:<br>
+      <span style="font-size:13px;color:#666">A_RZ = ((2,1),(1,3),(3,2)), B_ZE = ((1,2,1),(3,1,2))</span>
+    </div>
+    <div class="step-box">
+      <div class="step-row">
+        <div class="step-el">c₁₁</div>
+        <div class="step-formula">Zeile 1 von A × Spalte 1 von B: 2·1 + 1·3</div>
+        <div class="step-answer">c₁₁ = <input class="step-in" id="cre-1" placeholder="?"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">c₁₂</div>
+        <div class="step-formula">Zeile 1 von A × Spalte 2 von B: 2·2 + 1·1</div>
+        <div class="step-answer">c₁₂ = <input class="step-in" id="cre-2" placeholder="?"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">c₂₁</div>
+        <div class="step-formula">Zeile 2 von A × Spalte 1 von B: 1·1 + 3·3</div>
+        <div class="step-answer">c₂₁ = <input class="step-in" id="cre-3" placeholder="?"></div>
+      </div>
+      <div class="step-row">
+        <div class="step-el">c₃₃</div>
+        <div class="step-formula">Zeile 3 von A × Spalte 3 von B: 3·1 + 2·2</div>
+        <div class="step-answer">c₃₃ = <input class="step-in" id="cre-4" placeholder="?"></div>
+      </div>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkCRE()">Alle prüfen</button>
+    </div>
+    <div class="feedback" id="fb-cre"></div>
+  </div>
+
+  <!-- 4-4: Fill-in — Rohstoffbedarf bei Bestellung -->
+  <div class="card">
+    <div class="card-nr">Lückentext · Rohstoffbedarf berechnen</div>
+    <div class="card-q">
+      Bestellung: E1=15, E2=8, E3=12 ME. Berechnen Sie die Zwischenproduktmengen:<br>
+      <span class="hl">z = B_ZE · e</span> mit e = (15, 8, 12)ᵀ
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">z₁ = 1·15 + 2·8 + 1·12 =</span>
+      <input class="fill" id="roh-1" placeholder="?" style="width:70px">
+      <span class="fill-label">ME (Zwischenprodukt Z1)</span>
+    </div>
+    <div class="fill-row">
+      <span class="fill-label">z₂ = 3·15 + 1·8 + 2·12 =</span>
+      <input class="fill" id="roh-2" placeholder="?" style="width:70px">
+      <span class="fill-label">ME (Zwischenprodukt Z2)</span>
+    </div>
+    <div class="fill-row" style="margin-top:12px">
+      <span class="fill-label">r₁ = 2·z₁ + 1·z₂ =</span>
+      <input class="fill" id="roh-3" placeholder="?" style="width:70px">
+      <span class="fill-label">ME (Rohstoff R1)</span>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkROH()">Prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-roh')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-roh">z₁=15+16+12=43. z₂=45+8+24=77. r₁=2·43+1·77=86+77=163</div>
+    <div class="feedback" id="fb-roh"></div>
+  </div>
+
+  <!-- 4-5: Wahr/Falsch — Matrizenrechnung -->
+  <div class="card">
+    <div class="card-nr">Wahr oder Falsch · Matrizenrechnung</div>
+    <div class="card-q">Wahr oder Falsch?</div>
+    <div>
+      <div class="tf-row">
+        <div class="tf-stmt">A·B = B·A gilt für alle quadratischen Matrizen.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf4-1',this,'F')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf4-1',this,'F')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf4-1" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Eine (3×2)-Matrix mal einer (2×4)-Matrix ergibt eine (3×4)-Matrix.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf4-2',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf4-2',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf4-2" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Im Verflechtungsdiagramm zeigt ein Pfeil von A nach B: A wird für B benötigt.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf4-3',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf4-3',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf4-3" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+      <div class="tf-row">
+        <div class="tf-stmt">Eine (2×3)-Matrix kann nur mit einer (3×n)-Matrix multipliziert werden.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF('tf4-4',this,'W')">Wahr</button>
+          <button class="tf-btn" onclick=\"checkTF('tf4-4',this,'W')\">Falsch</button>
+        </div>
+        <div class="feedback" id="tf4-4" style="display:inline-block;padding:4px 10px;font-size:12px"></div>
+      </div>
+    </div>
+    <div class="feedback" id="fb-tf4"></div>
+  </div>
+
+  <!-- 4-6: Tabelle — kleine Matrizenmultiplikation -->
+  <div class="card">
+    <div class="card-nr">Tabelle ausfüllen · Matrizenmultiplikation</div>
+    <div class="card-q">
+      Berechnen Sie alle Elemente von C = A · B:<br>
+      <span style="font-size:13px">A = ((1,2),(3,1)), B = ((4,0),(2,3))</span>
+    </div>
+    <table class="input-table">
+      <tr><th>C =</th><th>Spalte 1</th><th>Spalte 2</th></tr>
+      <tr>
+        <td style="font-weight:700;background:#eef">Zeile 1</td>
+        <td><input id="cmat-11" placeholder="c₁₁"></td>
+        <td><input id="cmat-12" placeholder="c₁₂"></td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;background:#eef">Zeile 2</td>
+        <td><input id="cmat-21" placeholder="c₂₁"></td>
+        <td><input id="cmat-22" placeholder="c₂₂"></td>
+      </tr>
+    </table>
+    <div style="margin:12px 0;display:flex;gap:8px">
+      <button class="btn btn-check" onclick="checkCmat()">Alle prüfen</button>
+      <button class="btn btn-tipp" onclick="toggleTipp('tipp-cmat')">💡 Tipp</button>
+    </div>
+    <div class="tipp" id="tipp-cmat">c₁₁=1·4+2·2=8. c₁₂=1·0+2·3=6. c₂₁=3·4+1·2=14. c₂₂=3·0+1·3=3.</div>
+    <div class="feedback" id="fb-cmat"></div>
+  </div>
+
+  <!-- 4-7: Zuordnung — Matrizentypen -->
+  <div class="card">
+    <div class="card-nr">Zuordnung · Matrizentypen im Verflechtungsmodell</div>
+    <div class="card-q">Ordnen Sie den Matrizen ihre Bedeutung zu:</div>
+    <div class="match-wrap">
+      <div class="match-left">
+        <div class="match-item" id="ml4-1" onclick="matchClick('m4','ml4-1','left')">A_RZ</div>
+        <div class="match-item" id="ml4-2" onclick="matchClick('m4','ml4-2','left')">B_ZE</div>
+        <div class="match-item" id="ml4-3" onclick="matchClick('m4','ml4-3','left')">C_RE = A·B</div>
+        <div class="match-item" id="ml4-4" onclick="matchClick('m4','ml4-4','left')">Bestellvektor e</div>
+      </div>
+      <div class="match-right">
+        <div class="match-item" id="mr4-A" onclick="matchClick('m4','mr4-A','right')" data-pair="ml4-2">Zwischenprodukte → Endprodukte</div>
+        <div class="match-item" id="mr4-B" onclick="matchClick('m4','mr4-B','right')" data-pair="ml4-4">Gewünschte Menge je Endprodukt</div>
+        <div class="match-item" id="mr4-C" onclick="matchClick('m4','mr4-C','right')" data-pair="ml4-1">Rohstoffe → Zwischenprodukte</div>
+        <div class="match-item" id="mr4-D" onclick="matchClick('m4','mr4-D','right')" data-pair="ml4-3">Direkte Rohstoff-Endprodukt-Beziehung</div>
+      </div>
+    </div>
+    <div class="feedback" id="fb-m4"></div>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+let totalScore = 0;
+const sectionScores = [0,0,0,0,0];
+const sectionMax   = [5,3,4,4,4]; // Aufgaben pro Sektion
+const sectionDone  = [0,0,0,0,0];
+
+// ── Navigation ─────────────────────────────────────────────────
+function showSection(i) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+i).classList.add('active');
+  document.getElementById('tab-'+i).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Score ──────────────────────────────────────────────────────
+function addScore(sec, n=1) {
+  sectionScores[sec] += n;
+  totalScore += n;
+  document.getElementById('global-score').textContent = '⭐ '+totalScore+' Punkte';
+  sectionDone[sec]++;
+  const pct = Math.min(100, Math.round(sectionDone[sec]/sectionMax[sec]*100));
+  document.getElementById('prog-'+sec).style.width = pct+'%';
+  if(sectionDone[sec]>=sectionMax[sec]){
+    document.getElementById('tab-'+sec).classList.add('done');
+  }
+}
+
+// ── Feedback ───────────────────────────────────────────────────
+function fb(id, type, msg) {
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.className='feedback '+type+' visible';
+  el.innerHTML=msg;
+}
+function toggleTipp(id) {
+  document.getElementById(id).classList.toggle('visible');
+}
+
+// ── Multiple Choice ────────────────────────────────────────────
+const mcAnswers = {
+  'mc0':1, 'mc1':1, 'mc-kd':2, 'mc-gs':0, 'mc-rat':1,
+  'mc-kr':1, 'mc-sf':1, 'mc-vd':1, 'mc-gs':0
+};
+const mcFeedback = {
+  'mc0':{
+    1:'✓ Richtig! E(x) = p(x)·x = (−1,5x+15)·x = −1,5x² + 15x',
+    other:'✗ E(x) = p(x)·x — multipliziere den Preis mit der Menge x.'
+  },
+  'mc1':{
+    1:'✓ Richtig! p=9 → −1,5x+15=9 → 1,5x=6 → x=4 ME',
+    other:'✗ p(x)=9 einsetzen: −1,5x+15=9 → x=?'
+  },
+  'mc-kd':{
+    2:'✓ Richtig! Wendepunkte bei f\'\'(t)=0: t=±√(10/3)≈±1,83',
+    other:'✗ Wendepunkte: f\'\'(t)=−0,6t²+2=0 → t²=10/3 → t≈1,83'
+  },
+  'mc-gs':{
+    0:'✓ Richtig! G(0)=−6 < 0. Gewinnschwelle via TR bei x≈0,59 ME.',
+    other:'✗ G(0)=−6 (Verlust). Die Gewinnschwelle ist die erste Nullstelle von G(x).'
+  },
+  'mc-rat':{
+    1:'✓ Richtig! G(0,5)≈−1,125 < 0 → Verlust. Nicht empfehlenswert!',
+    other:'✗ G(0,5)=−0,125+1+4−6=−1,125 GE — das ist ein Verlust!'
+  },
+  'mc-kr':{
+    1:'✓ Richtig! KR = ∫₀^x_G (p_N − p_G) dx — der Überschuss der Konsumenten über den Marktpreis.',
+    other:'✗ KR = ∫₀^x_G (Nachfragekurve − Marktpreis) dx'
+  },
+  'mc-sf':{
+    1:'✓ Richtig! ∫(−0,5x²+8)dx = −0,5x³/3+8x = −x³/6+8x+C',
+    other:'✗ ∫x² dx = x³/3, also ∫−0,5x² dx = −0,5x³/3 = −x³/6'
+  },
+  'mc-vd':{
+    1:'✓ Richtig! Pfeil von R1→Z2 mit Wert 3: für 1 ME Z2 werden 3 ME R1 benötigt → a_RZ(R1,Z2)=3',
+    other:'✗ Im Verflechtungsdiagramm: Pfeil von Rohstoff→Zwischenprodukt mit Wert x → x ME Rohstoff pro ME Zwischenprodukt.'
+  },
+};
+
+function checkMC(id, el, choice) {
+  const opts=document.querySelectorAll(`#${id}-opts .opt`);
+  opts.forEach(o=>o.style.pointerEvents='none');
+  const correct=mcAnswers[id];
+  if(choice===correct){
+    el.classList.add('correct');
+    fb('fb-'+id,'correct', mcFeedback[id][correct]||'✓ Richtig!');
+    addScore(getSection(id));
+  } else {
+    el.classList.add('wrong');
+    opts[correct].classList.add('revealed');
+    fb('fb-'+id,'wrong', mcFeedback[id]['other']||'✗ Nicht ganz.');
+  }
+}
+function getSection(id) {
+  const map={'mc0':0,'mc1':0,'mc-kd':1,'mc-gs':2,'mc-rat':2,'mc-kr':3,'mc-sf':3,'mc-vd':4};
+  return map[id]??0;
+}
+
+// ── Fill-in checks ─────────────────────────────────────────────
+function setFill(id, ok) {
+  const el=document.getElementById(id);
+  el.classList.remove('correct','wrong');
+  el.classList.add(ok?'correct':'wrong');
+}
+
+function checkFill0() {
+  const v1=parseFloat(document.getElementById('fi0-1').value.replace(',','.'));
+  const v2=parseFloat(document.getElementById('fi0-2').value.replace(',','.'));
+  const ok1=Math.abs(v1-36)<0.5;
+  const ok2=Math.abs(v2-4)<0.5;
+  setFill('fi0-1',ok1); setFill('fi0-2',ok2);
+  if(ok1&&ok2){ fb('fb-fi0','correct','✓ Beide korrekt! E(6)=36 GE. Auch bei x=4 wird der Erlös von 36 GE erzielt.'); addScore(0); }
+  else fb('fb-fi0','wrong','✗ E(6) = −54+90=36. Für x: −1,5x²+15x=36 → x²−10x+24=0 → (x−4)(x−6)=0');
+}
+function checkFill1() {
+  const a=parseFloat(document.getElementById('fi1-a').value.replace(',','.'));
+  const b=parseFloat(document.getElementById('fi1-b').value.replace(',','.'));
+  const okA=Math.abs(a-(-15/7))<0.2;
+  const okB=Math.abs(b-29.29)<0.8;
+  setFill('fi1-a',okA); setFill('fi1-b',okB);
+  if(okA&&okB){ fb('fb-fi1','correct','✓ Richtig! a=(10−25)/(9−2)=−15/7≈−2,14. b=25−2·(−2,14)≈29,29. Also p(x)≈−2,14x+29,29'); addScore(0); }
+  else fb('fb-fi1','wrong','✗ a=(p₂−p₁)/(x₂−x₁)=(10−25)/(9−2)=−15/7≈−2,14. b=25−2·a');
+}
+function checkGW() {
+  const a=parseFloat(document.getElementById('gw-a').value);
+  const b=parseFloat(document.getElementById('gw-b').value);
+  const c=parseFloat(document.getElementById('gw-c').value);
+  const ok=a===4&&b===8&&c===6;
+  setFill('gw-a',a===4); setFill('gw-b',b===8); setFill('gw-c',c===6);
+  if(ok){ fb('fb-gw','correct','✓ Richtig! G(x)=14x−(x³−4x²+6x+6)=−x³+4x²+8x−6'); addScore(2); }
+  else fb('fb-gw','wrong','✗ G(x)=E−K=14x−x³+4x²−6x−6. Koeffizienten sammeln!');
+}
+function checkKR() {
+  const v1=parseFloat(document.getElementById('kr-1').value);
+  const v2=parseFloat(document.getElementById('kr-2').value.replace(',','.'));
+  const ok1=Math.abs(v1-2)<0.1;
+  const ok2=Math.abs(v2-4.90)<0.1;
+  setFill('kr-1',ok1); setFill('kr-2',ok2);
+  if(ok1&&ok2){ fb('fb-kr','correct','✓ Korrekt! 2√6≈4,90 GE. KR=PR=2√6 — in diesem Fall sind beide gleich!'); addScore(3); }
+  else fb('fb-kr','wrong','✗ −√6+3√6=2√6≈4,90 GE');
+}
+function checkROH() {
+  const z1=parseFloat(document.getElementById('roh-1').value);
+  const z2=parseFloat(document.getElementById('roh-2').value);
+  const r1=parseFloat(document.getElementById('roh-3').value);
+  const ok=[z1===43,z2===77,r1===163];
+  setFill('roh-1',ok[0]); setFill('roh-2',ok[1]); setFill('roh-3',ok[2]);
+  if(ok.every(Boolean)){ fb('fb-roh','correct','✓ Alle korrekt! z=(43,77), r₁=163 ME Rohstoff R1'); addScore(4); }
+  else fb('fb-roh','wrong','✗ z₁=15+16+12=43. z₂=45+8+24=77. r₁=2·43+1·77=163');
+}
+
+// ── Step-by-step checks ────────────────────────────────────────
+function setStep(id, ok) {
+  const el=document.getElementById(id);
+  el.classList.remove('correct','wrong');
+  el.classList.add(ok?'correct':'wrong');
+}
+
+function checkSteps0() {
+  const s1=document.getElementById('s0-1').value.replace(/\s/g,'');
+  const s2=parseFloat(document.getElementById('s0-2').value);
+  const s3=parseFloat(document.getElementById('s0-3').value.replace(',','.'));
+  const ok1=s1.includes('-3x+15')||s1.includes('−3x+15');
+  const ok2=Math.abs(s2-5)<0.1;
+  const ok3=Math.abs(s3-7.5)<0.1;
+  setStep('s0-1',ok1); setStep('s0-2',ok2); setStep('s0-3',ok3);
+  if(ok1&&ok2&&ok3){ fb('fb-s0','correct','✓ Perfekt! E\'(x)=−3x+15=0→x=5, p(5)=7,50 GE/ME — Cournot-Punkt C(5|7,50)'); addScore(0); }
+  else fb('fb-s0','wrong','✗ E\'(x)=−3x+15. E\'=0→x=5. p(5)=−1,5·5+15=7,5');
+}
+function checkKD() {
+  const d1=document.getElementById('kd-1').value.replace(/\s/g,'');
+  const d2=document.getElementById('kd-2').value.replace(/\s/g,'');
+  const t=parseFloat(document.getElementById('kd-3').value.replace(',','.'));
+  const fmax=parseFloat(document.getElementById('kd-4').value.replace(',','.'));
+  const f0=parseFloat(document.getElementById('kd-5').value.replace(',','.'));
+  const ok=[
+    d1.includes('-0,2')||d1.includes('−0,2')||d1.includes('-0.2'),
+    d2.includes('-0,6')||d2.includes('−0,6')||d2.includes('-0.6'),
+    Math.abs(t-3.16)<0.1||Math.abs(t*t-10)<0.3,
+    Math.abs(fmax-60)<0.5,
+    Math.abs(f0-55)<0.1,
+  ];
+  ['kd-1','kd-2','kd-3','kd-4','kd-5'].forEach((id,i)=>setStep(id,ok[i]));
+  if(ok.every(Boolean)){ fb('fb-kd','correct','✓ Alle Schritte korrekt! f\'=−0,2t³+2t, f\'\'=−0,6t²+2, t_opt=√10≈3,16, f(√10)=60°C, f(0)=55°C'); addScore(1); }
+  else fb('fb-kd','wrong','✗ f\'(t)=−0,2t³+2t. f\'\'(t)=−0,6t²+2. f(√10)=−0,05·100+10+55=60. f(0)=55');
+}
+function checkGK() {
+  const k1=document.getElementById('gk-1').value.replace(/\s/g,'');
+  const k2=document.getElementById('gk-2').value.replace(/\s/g,'');
+  const x=parseFloat(document.getElementById('gk-3').value.replace(',','.'));
+  const kmin=parseFloat(document.getElementById('gk-4').value.replace(',','.'));
+  const ok=[
+    k1.includes('3x²')||k1.includes('3x^2'),
+    k2.includes('6x-8')||k2.includes('6x−8'),
+    Math.abs(x-4/3)<0.1,
+    Math.abs(kmin-0.67)<0.05,
+  ];
+  ['gk-1','gk-2','gk-3','gk-4'].forEach((id,i)=>setStep(id,ok[i]));
+  if(ok.every(Boolean)){ fb('fb-gk','correct','✓ Korrekt! K\'=3x²−8x+6, min bei x=4/3≈1,33 ME, K\'(4/3)=2/3≈0,67 GE/ME'); addScore(2); }
+  else fb('fb-gk','wrong','✗ K\'(x)=3x²−8x+6. K\'\'=6x−8=0→x=4/3. K\'(4/3)=3·16/9−8·4/3+6=2/3≈0,67');
+}
+function checkMG() {
+  const x2=parseFloat(document.getElementById('mg-1').value);
+  const x2b=parseFloat(document.getElementById('mg-2').value);
+  const xg=parseFloat(document.getElementById('mg-3').value.replace(',','.'));
+  const pg=parseFloat(document.getElementById('mg-4').value.replace(',','.'));
+  const ok=[Math.abs(x2-6)<0.1,Math.abs(x2b-6)<0.1,Math.abs(xg-2.45)<0.1,Math.abs(pg-5)<0.1];
+  ['mg-1','mg-2','mg-3','mg-4'].forEach((id,i)=>setStep(id,ok[i]));
+  if(ok.every(Boolean)){ fb('fb-mg','correct','✓ Richtig! x²=6, x_G=√6≈2,45 ME, p_G=5 GE/ME. Umsatz=5√6≈12,25 GE'); addScore(3); }
+  else fb('fb-mg','wrong','✗ −0,5x²+8=0,5x²+2→6=x²→x=√6≈2,45. p_G=0,5·6+2=5');
+}
+function checkCRE() {
+  const v=[parseInt(document.getElementById('cre-1').value),
+           parseInt(document.getElementById('cre-2').value),
+           parseInt(document.getElementById('cre-3').value),
+           parseInt(document.getElementById('cre-4').value)];
+  const ans=[5,5,10,7];
+  v.forEach((val,i)=>setStep(`cre-${i+1}`,val===ans[i]));
+  if(v.every((val,i)=>val===ans[i])){ fb('fb-cre','correct','✓ Korrekt! c₁₁=5, c₁₂=5, c₂₁=10, c₃₃=7. Vollständige CRE: ((5,5,4),(10,5,7),(9,8,7))'); addScore(4); }
+  else fb('fb-cre','wrong','✗ c₁₁=2·1+1·3=5. c₁₂=2·2+1·1=5. c₂₁=1·1+3·3=10. c₃₃=3·1+2·2=7');
+}
+
+// ── Drag & Drop ────────────────────────────────────────────────
+let dragValue = '';
+function dragStart(e, val) { dragValue=val; e.dataTransfer.effectAllowed='copy'; }
+function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('over'); }
+function drop(e, targetId) {
+  e.preventDefault();
+  const t=document.getElementById(targetId);
+  t.classList.remove('over');
+  t.textContent=dragValue;
+  t.classList.add('filled');
+  t.dataset.current=dragValue;
+}
+
+function checkDD1() {
+  const targets=['dd1-t1','dd1-t2','dd1-t3','dd1-t4'];
+  let allOk=true;
+  targets.forEach(id=>{
+    const t=document.getElementById(id);
+    const ok=t.dataset.current===t.dataset.answer;
+    t.classList.remove('correct','wrong');
+    t.classList.add(ok?'correct':'wrong');
+    if(!ok) allOk=false;
+  });
+  if(allOk){ fb('fb-dd1','correct','✓ Alle korrekt! Du kennst die Begriffe der Kurvendiskussion.'); addScore(1); }
+  else fb('fb-dd1','wrong','✗ Nicht alle korrekt. Tipp: f(−t)=f(t) → Achsensymmetrie. f\'\'<0 → Maximum.');
+}
+function resetDD1() {
+  ['dd1-t1','dd1-t2','dd1-t3','dd1-t4'].forEach(id=>{
+    const t=document.getElementById(id);
+    t.textContent='Ablegen'; t.dataset.current='';
+    t.classList.remove('correct','wrong','filled');
+  });
+  fb('fb-dd1','',''); document.getElementById('fb-dd1').className='feedback';
+}
+
+function checkDD2() {
+  const targets=['dd2-11','dd2-12','dd2-13','dd2-21','dd2-22','dd2-23'];
+  let ok=0;
+  targets.forEach(id=>{
+    const t=document.getElementById(id);
+    const correct=t.dataset.current===t.dataset.answer;
+    t.classList.remove('correct','wrong');
+    t.classList.add(correct?'correct':'wrong');
+    if(correct) ok++;
+  });
+  if(ok===6){ fb('fb-dd2','correct','✓ Matrix B_ZE vollständig korrekt!'); addScore(4); }
+  else fb('fb-dd2','info',`${ok}/6 Felder korrekt. Zeile 1 (Z1): 1,2,1. Zeile 2 (Z2): 3,1,2`);
+}
+function resetDD2() {
+  ['dd2-11','dd2-12','dd2-13','dd2-21','dd2-22','dd2-23'].forEach(id=>{
+    const t=document.getElementById(id);
+    t.textContent='?'; t.dataset.current='';
+    t.classList.remove('correct','wrong','filled');
+  });
+  fb('fb-dd2','',''); document.getElementById('fb-dd2').className='feedback';
+}
+
+// ════════════════════════════════════════════════════════════
+// NEUE AUFGABENTYPEN
+// ════════════════════════════════════════════════════════════
+
+// ── Wahr/Falsch ──────────────────────────────────────────────
+function checkTF(fbId, btn, correctAnswer) {
+  // correctAnswer: 'W' = Wahr, 'F' = Falsch
+  const userAnswer = btn.textContent.trim() === 'Wahr' ? 'W' : 'F';
+  const ok = userAnswer === correctAnswer;
+  // Disable all buttons in same row
+  btn.closest('.tf-btns').querySelectorAll('.tf-btn').forEach(b => b.style.pointerEvents = 'none');
+  btn.classList.add(ok ? 'correct' : 'wrong');
+  const el = document.getElementById(fbId);
+  if (el) {
+    el.className = 'feedback ' + (ok ? 'correct' : 'wrong') + ' visible';
+    el.innerHTML = ok ? '✓ Richtig!' : '✗ Falsch. Richtig wäre: ' + (correctAnswer === 'W' ? 'Wahr' : 'Falsch');
+  }
+}
+
+
+function checkAllTF0() {
+  const ids = ['tf0-1','tf0-2','tf0-3','tf0-4'];
+  const answered = ids.filter(id => {
+    const el = document.getElementById(id);
+    return el && el.classList.contains('visible');
+  }).length;
+  if (answered < 4) { fb('fb-tf0','info','Bitte zuerst alle 4 Aussagen beantworten.'); return; }
+  const correct = ids.filter(id => document.getElementById(id)?.classList.contains('correct')).length;
+  if (correct === 4) { fb('fb-tf0','correct','✓ Alle 4 korrekt!'); addScore(0); }
+  else fb('fb-tf0','info', correct + '/4 korrekt. Tipp: Beim Maximum gilt G\'\' (x) < 0!');
+}
+
+// ── Fehler finden ─────────────────────────────────────────────
+let selectedErrors = {};
+function selectErr(group, el, id) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(e=>{
+    e.classList.remove('selected');
+  });
+  el.classList.add('selected');
+  selectedErrors[group] = id;
+}
+
+function checkErr(group, correctId, fbId, noError=false) {
+  if(noError) {
+    // "Kein Fehler" button clicked
+    if(group==='err2') {
+      fb(fbId,'correct','✓ Richtig! Der Rechenweg ist vollständig korrekt — kein Fehler vorhanden.');
+      addScore(2);
+    } else {
+      fb(fbId,'wrong','✗ Es gibt einen Fehler. Schaue die Schritte noch einmal durch.');
+    }
+    return;
+  }
+  const selected = selectedErrors[group];
+  if(!selected) { fb(fbId,'info','Bitte erst einen Schritt anklicken.'); return; }
+  
+  const el = document.getElementById(selected);
+  if(selected === correctId) {
+    el.classList.add('correct');
+    fb(fbId,'correct','✓ Richtig! Schritt ④ ist der Fehler: G(3) = E(3) − K(3) = 12 − 14,5 = −2,5 GE (Verlust!), nicht +!');
+    addScore(0);
+  } else {
+    el.classList.add('wrong');
+    document.getElementById(correctId)?.classList.add('correct');
+    fb(fbId,'wrong','✗ Nicht dieser Schritt. Schritt ④ enthält den Fehler: G = E − K, nicht E + K!');
+  }
+}
+
+// ── Sortieren (Drag & Drop Liste) ─────────────────────────────
+let sortDragging = null;
+function sortStart(e) {
+  sortDragging = e.currentTarget;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function sortEnd(e) { e.currentTarget.classList.remove('dragging'); }
+function sortOver(e) {
+  e.preventDefault();
+  if(!sortDragging) return;
+  const list = e.currentTarget;
+  const items = [...list.querySelectorAll('.sort-item:not(.dragging)')];
+  const afterEl = items.find(item=>{
+    const box=item.getBoundingClientRect();
+    return e.clientY < box.top + box.height/2;
+  });
+  if(afterEl) list.insertBefore(sortDragging, afterEl);
+  else list.appendChild(sortDragging);
+}
+function checkSort(listId, fbId) {
+  const items = [...document.getElementById(listId).querySelectorAll('.sort-item')];
+  const orders = items.map(i=>parseInt(i.dataset.order));
+  const correct = [1,2,3,4,5];
+  const allOk = orders.every((v,i)=>v===correct[i]);
+  items.forEach((item,i)=>{
+    item.classList.remove('correct-pos','wrong-pos');
+    item.classList.add(orders[i]===correct[i]?'correct-pos':'wrong-pos');
+  });
+  if(allOk){ fb(fbId,'correct','✓ Perfekte Reihenfolge! Das ist der Standard-Ablauf einer Kurvendiskussion.'); addScore(1); }
+  else fb(fbId,'wrong','✗ Nicht ganz. Richtige Reihenfolge: 1.Ableitungen → 2.Sym/Nullst → 3.Extrema → 4.Wendepunkte → 5.Skizze');
+}
+
+// ── Matching (Paare verbinden) ─────────────────────────────────
+let matchState = {};
+function matchClick(group, id, side) {
+  if(!matchState[group]) matchState[group] = {left:null, right:null};
+  const state = matchState[group];
+  
+  // If already matched, ignore
+  if(document.getElementById(id).classList.contains('matched')) return;
+  
+  // Clear previous selection on same side
+  if(state[side]) {
+    const prev = document.getElementById(state[side]);
+    if(prev && !prev.classList.contains('matched')) prev.classList.remove('selected');
+  }
+  
+  document.getElementById(id).classList.add('selected');
+  state[side] = id;
+  
+  // If both sides selected, check match
+  if(state.left && state.right) {
+    const leftEl  = document.getElementById(state.left);
+    const rightEl = document.getElementById(state.right);
+    const correctLeft = rightEl.dataset.pair;
+    const ok = correctLeft === state.left;
+    
+    setTimeout(()=>{
+      leftEl.classList.remove('selected');
+      rightEl.classList.remove('selected');
+      if(ok) {
+        leftEl.classList.add('matched');
+        rightEl.classList.add('matched');
+        // Check if all matched
+        const groupEl = leftEl.closest('.match-wrap');
+        const total = groupEl.querySelectorAll('.match-left .match-item').length;
+        const done  = groupEl.querySelectorAll('.matched').length / 2;
+        const fbId = 'fb-' + group;
+        if(done===total){ fb(fbId,'correct','✓ Alle '+total+' Paare korrekt zugeordnet!'); addScore(parseInt(group.replace('m',''))||0); }
+      } else {
+        leftEl.classList.add('wrong');
+        rightEl.classList.add('wrong');
+        setTimeout(()=>{ leftEl.classList.remove('wrong'); rightEl.classList.remove('wrong'); }, 800);
+        fb('fb-'+group,'wrong','✗ Diese Kombination passt nicht. Versuche es nochmal!');
+      }
+      state.left = null; state.right = null;
+    }, 200);
+  }
+}
+
+// ── Tabellen-Checks ───────────────────────────────────────────
+function checkTab1() {
+  const vals = [
+    {id:'tab1-1', ans:54.2},
+    {id:'tab1-2', ans:55},
+    {id:'tab1-3', ans:54.2},
+    {id:'tab1-4', ans:60},
+  ];
+  let ok=0;
+  vals.forEach(({id,ans})=>{
+    const v=parseFloat(document.getElementById(id).value.replace(',','.'));
+    const correct=Math.abs(v-ans)<0.2;
+    document.getElementById(id).classList.remove('correct','wrong');
+    document.getElementById(id).classList.add(correct?'correct':'wrong');
+    if(correct) ok++;
+  });
+  if(ok===4){ fb('fb-tab1','correct','✓ Alle 4 Werte korrekt! f(±2)=54,2 (Symmetrie!), f(0)=55, f(√10)=60'); addScore(1); }
+  else fb('fb-tab1','wrong','✗ f(t)=−0,05t⁴+t²+55. f(2)=−0,8+4+55=54,2. f(√10)=−5+10+55=60');
+}
+
+function checkGTab() {
+  const vals = [
+    {id:'gtab-0', ans:-6},
+    {id:'gtab-1', ans:5},
+    {id:'gtab-3', ans:27},
+    {id:'gtab-5', ans:9},
+    {id:'gtab-6', ans:-30},
+  ];
+  let ok=0;
+  vals.forEach(({id,ans})=>{
+    const v=parseFloat(document.getElementById(id).value.replace(',','.'));
+    const correct=Math.abs(v-ans)<0.1;
+    document.getElementById(id).classList.remove('correct','wrong');
+    document.getElementById(id).classList.add(correct?'correct':'wrong');
+    if(correct) ok++;
+  });
+  if(ok===5){ fb('fb-gtab','correct','✓ Perfekt! G(0)=−6, G(1)=5, G(3)=27, G(5)=9, G(6)=−30. Gewinnzone: ca. 0,59–5,31 ME.'); addScore(2); }
+  else fb('fb-gtab','wrong','✗ Tipp aufklappen für alle Rechenwege!');
+}
+
+function checkIntTab() {
+  const v1=parseFloat(document.getElementById('int-1').value.replace(',','.'));
+  const v2=parseFloat(document.getElementById('int-2').value.replace(',','.'));
+  const v3=parseFloat(document.getElementById('int-3').value.replace(',','.'));
+  // F(1)=−1/6+8≈7.833, F(2)=−8/6+16≈14.667, F(√6)=7√6≈17.146
+  const ok=[Math.abs(v1-7.83)<0.1, Math.abs(v2-14.67)<0.1, Math.abs(v3-17.15)<0.2];
+  ['int-1','int-2','int-3'].forEach((id,i)=>{
+    document.getElementById(id).classList.remove('correct','wrong');
+    document.getElementById(id).classList.add(ok[i]?'correct':'wrong');
+  });
+  if(ok.every(Boolean)){ fb('fb-int','correct','✓ Alle korrekt! F(1)≈7,83. F(2)≈14,67. F(√6)=7√6≈17,15 GE'); addScore(3); }
+  else fb('fb-int','wrong','✗ F(x)=−x³/6+8x. F(1)=−1/6+8≈7,83. F(√6)=7√6≈17,15');
+}
+
+function checkCmat() {
+  const vals=[{id:'cmat-11',ans:8},{id:'cmat-12',ans:6},{id:'cmat-21',ans:14},{id:'cmat-22',ans:3}];
+  let ok=0;
+  vals.forEach(({id,ans})=>{
+    const v=parseInt(document.getElementById(id).value);
+    const correct=v===ans;
+    document.getElementById(id).classList.remove('correct','wrong');
+    document.getElementById(id).classList.add(correct?'correct':'wrong');
+    if(correct) ok++;
+  });
+  if(ok===4){ fb('fb-cmat','correct','✓ Matrix C korrekt! C=((8,6),(14,3))'); addScore(4); }
+  else fb('fb-cmat','wrong','✗ c₁₁=1·4+2·2=8, c₁₂=1·0+2·3=6, c₂₁=3·4+1·2=14, c₂₂=3·0+1·3=3');
+}
+
+// Overwrite section max scores for progress bars
+const sectionMaxNew = [8,6,7,7,7];
+
+</script>
+</body>
+</html>

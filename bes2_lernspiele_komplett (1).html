@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathe-Lernspiele – BES 2 Abschlussprüfung</title>
+
+<style>
+/* ===================== GLOBAL ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a1220;
+  --surface: #111d2e;
+  --surface2: #172233;
+  --border: #1e3248;
+  --quiz: #F0A500;
+  --trainer: #22c55e;
+  --drag: #a78bfa;
+  --luecke: #f472b6;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --font: 'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif;
+  --mono: 'Courier New', Consolas, monospace;
+}
+html, body { height: 100%; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+/* ===================== BACKGROUND ===================== */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(240,165,0,.08) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,.07) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 50% at 50% 50%, rgba(34,197,94,.04) 0%, transparent 70%);
+}
+#root { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ===================== TOP NAV ===================== */
+nav {
+  display: flex; align-items: center; gap: 6px; padding: 12px 20px;
+  background: rgba(17,29,46,.9); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-brand {
+  font-weight: 800; font-size: 1rem; color: var(--text);
+  margin-right: 8px; white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-brand span { font-size: 1.3rem; }
+.nav-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+.nav-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px; border: none;
+  background: transparent; color: var(--muted); font-family: var(--font);
+  font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.nav-btn:hover { background: var(--surface2); color: var(--text); }
+.nav-btn.active { color: #fff; }
+.nav-btn.active.q  { background: rgba(240,165,0,.18);  color: var(--quiz);    box-shadow: 0 0 0 1px rgba(240,165,0,.3); }
+.nav-btn.active.t  { background: rgba(34,197,94,.15);  color: var(--trainer); box-shadow: 0 0 0 1px rgba(34,197,94,.3); }
+.nav-btn.active.d  { background: rgba(167,139,250,.15); color: var(--drag);   box-shadow: 0 0 0 1px rgba(167,139,250,.3); }
+.nav-btn.active.l  { background: rgba(244,114,182,.15); color: var(--luecke); box-shadow: 0 0 0 1px rgba(244,114,182,.3); }
+.nav-btn.active.home { background: var(--surface2); color: var(--text); }
+.nav-btn.active.lp { background: rgba(56,189,248,.15); color: #38bdf8; box-shadow: 0 0 0 1px rgba(56,189,248,.3); }
+#panel-lernpfad { --lp: #38bdf8; }
+#panel-lernpfad .lp-wrap { max-width: 760px; margin: 0 auto; padding: 28px 20px 60px; }
+#panel-lernpfad .lp-topbar { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+#panel-lernpfad .lp-title { font-size: 1.4rem; font-weight: 800; color: var(--lp); }
+#panel-lernpfad .lp-sub { color: var(--muted); font-size: 0.85rem; }
+#panel-lernpfad .lp-progress-wrap { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; }
+#panel-lernpfad .lp-progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+#panel-lernpfad .lp-progress-label strong { color: var(--lp); }
+#panel-lernpfad .lp-bar-bg { height: 10px; background: var(--surface2); border-radius: 5px; overflow: hidden; }
+#panel-lernpfad .lp-bar-fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #38bdf8); border-radius: 5px; transition: width .6s ease; }
+#panel-lernpfad .lp-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+#panel-lernpfad .lp-step { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; display: flex; gap: 16px; align-items: flex-start; transition: border-color .3s, box-shadow .3s; }
+#panel-lernpfad .lp-step.done { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,.2); }
+#panel-lernpfad .lp-step.active-step { border-color: var(--lp); }
+#panel-lernpfad .lp-step-num { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; flex-shrink: 0; background: var(--surface2); border: 2px solid var(--border); color: var(--muted); transition: all .3s; }
+#panel-lernpfad .lp-step.done .lp-step-num { background: rgba(34,197,94,.15); border-color: #22c55e; color: #22c55e; }
+#panel-lernpfad .lp-step.active-step .lp-step-num { background: rgba(56,189,248,.15); border-color: var(--lp); color: var(--lp); }
+#panel-lernpfad .lp-step-body { flex: 1; }
+#panel-lernpfad .lp-step-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+#panel-lernpfad .lp-step-title { font-size: 1rem; font-weight: 700; }
+#panel-lernpfad .lp-step-badge { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 9px; border-radius: 20px; }
+#panel-lernpfad .lp-step-desc { font-size: 0.88rem; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+#panel-lernpfad .lp-step-goal { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
+#panel-lernpfad .lp-step-goal span { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 9px; font-family: 'Courier New', monospace; }
+#panel-lernpfad .lp-step-btn { padding: 9px 18px; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+#panel-lernpfad .lp-step.done .lp-step-btn { background: rgba(34,197,94,.12); color: #22c55e; border: 1px solid rgba(34,197,94,.3); cursor: default; }
+#panel-lernpfad .lp-step:not(.done) .lp-step-btn { background: var(--lp); color: #0a1220; }
+#panel-lernpfad .lp-step:not(.done) .lp-step-btn:hover { background: #0ea5e9; }
+#panel-lernpfad .lp-done-check { font-size: 1.3rem; margin-left: auto; flex-shrink: 0; opacity: 0; transition: opacity .3s; }
+#panel-lernpfad .lp-step.done .lp-done-check { opacity: 1; }
+#panel-lernpfad .lp-finish { display: none; background: linear-gradient(135deg, rgba(56,189,248,.08), rgba(34,197,94,.08)); border: 1px solid rgba(56,189,248,.3); border-radius: 16px; padding: 32px; text-align: center; }
+#panel-lernpfad .lp-finish.visible { display: block; animation: lpPop .5s ease; }
+@keyframes lpPop { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+#panel-lernpfad .lp-finish .emoji { font-size: 3.5rem; margin-bottom: 12px; }
+#panel-lernpfad .lp-finish h2 { font-size: 1.6rem; color: var(--lp); margin-bottom: 8px; }
+#panel-lernpfad .lp-finish p { color: var(--muted); font-size: 0.95rem; max-width: 420px; margin: 0 auto; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; }
+.q .nav-dot { background: var(--quiz); }
+.t .nav-dot { background: var(--trainer); }
+.d .nav-dot { background: var(--drag); }
+.l .nav-dot { background: var(--luecke); }
+
+/* ===================== PANELS ===================== */
+.panel { display: none; flex: 1; }
+.panel.active { display: block; }
+#panel-home { display: block; }
+
+/* ===================== HOME ===================== */
+.home-wrap { max-width: 860px; margin: 0 auto; padding: 48px 20px 60px; }
+.home-hero { text-align: center; margin-bottom: 48px; }
+.home-hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.1; margin-bottom: 12px; }
+.home-hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--quiz), var(--trainer)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.home-hero p { color: var(--muted); font-size: 1rem; max-width: 520px; margin: 0 auto; }
+.home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+.game-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px; cursor: pointer;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  position: relative; overflow: hidden;
+}
+.game-card::before {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  transition: opacity .3s;
+}
+.game-card:hover { transform: translateY(-3px); }
+.game-card:hover::before { opacity: 1; }
+.game-card.cq { --c: var(--quiz); }
+.game-card.ct { --c: var(--trainer); }
+.game-card.cd { --c: var(--drag); }
+.game-card.cl { --c: var(--luecke); }
+.game-card:hover { border-color: var(--c); box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 1px var(--c); }
+.game-card::before { background: radial-gradient(ellipse at top left, color-mix(in srgb, var(--c) 12%, transparent), transparent 60%); }
+.card-icon { font-size: 2.4rem; margin-bottom: 12px; }
+.card-badge {
+  display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+  background: color-mix(in srgb, var(--c) 15%, transparent);
+  color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+}
+.card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+.card-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 16px; }
+.card-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic-pill {
+  font-size: 0.75rem; padding: 3px 10px; border-radius: 20px;
+  background: var(--surface2); color: var(--muted); border: 1px solid var(--border);
+}
+.card-arrow { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 1.4rem; color: var(--c); opacity: 0; transition: opacity .2s, right .2s; }
+.game-card:hover .card-arrow { opacity: 1; right: 16px; }
+.home-info { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--quiz); border-radius: 12px; padding: 16px 20px; margin-top: 24px; font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+.home-info strong { color: var(--text); }
+
+/* ===================== GAME INNER SHARED ===================== */
+.game-inner { max-width: 760px; margin: 0 auto; padding: 28px 20px 60px; }
+.gi-header { margin-bottom: 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.gi-title { font-size: 1.4rem; font-weight: 800; }
+.gi-sub { color: var(--muted); font-size: 0.85rem; }
+.back-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-family: var(--font); font-size: 0.85rem; cursor: pointer; transition: all .2s; }
+.back-btn:hover { border-color: var(--muted); color: var(--text); }
+
+/* ===================== QUIZ ===================== */
+#panel-quiz .score-bar { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 12px 18px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border); }
+#panel-quiz .score-bar span { font-size: 0.9rem; color: var(--muted); }
+#panel-quiz .score-bar strong { color: var(--quiz); font-size: 1.1rem; }
+#panel-quiz #q-progress { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
+#panel-quiz #q-progress-fill { height: 100%; background: linear-gradient(90deg, var(--quiz), #e08000); border-radius: 3px; transition: width .4s; }
+#panel-quiz .qcard { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px; }
+#panel-quiz .q-cat { font-size: 0.75rem; color: var(--quiz); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+#panel-quiz .q-text { font-size: 1.1rem; line-height: 1.55; margin-bottom: 20px; color: var(--text); }
+#panel-quiz .q-opts { display: grid; gap: 9px; }
+#panel-quiz .q-opt { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 13px 16px; border-radius: 10px; text-align: left; font-size: 0.95rem; font-family: var(--font); cursor: pointer; transition: all .18s; }
+#panel-quiz .q-opt:hover:not(:disabled) { border-color: var(--quiz); background: rgba(240,165,0,.07); }
+#panel-quiz .q-opt.correct { border-color: var(--trainer); background: rgba(34,197,94,.1); color: #86efac; }
+#panel-quiz .q-opt.wrong { border-color: #ef4444; background: rgba(239,68,68,.1); color: #fca5a5; }
+#panel-quiz .q-opt.reveal { border-color: var(--trainer); background: rgba(34,197,94,.1); color: #86efac; }
+#panel-quiz .q-opt:disabled { cursor: default; }
+#panel-quiz .q-fb { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; line-height: 1.5; display: none; }
+#panel-quiz .q-fb.ok { background: rgba(34,197,94,.1); color: #86efac; border-left: 4px solid var(--trainer); }
+#panel-quiz .q-fb.nok { background: rgba(239,68,68,.1); color: #fca5a5; border-left: 4px solid #ef4444; }
+#panel-quiz #q-next { display: none; width: 100%; padding: 13px; background: var(--quiz); color: #111; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; font-family: var(--font); cursor: pointer; margin-top: 12px; transition: background .2s; }
+#panel-quiz #q-next:hover { background: #e09500; }
+#panel-quiz .q-result { text-align: center; padding: 40px 20px; }
+#panel-quiz .q-result .q-emoji { font-size: 3.5rem; margin-bottom: 12px; }
+#panel-quiz .q-result h2 { font-size: 1.8rem; color: var(--quiz); margin-bottom: 8px; }
+#panel-quiz .q-result p { color: var(--muted); margin-bottom: 20px; }
+#panel-quiz .q-result .q-pts { font-size: 1.4rem; color: var(--quiz); font-weight: 800; margin-bottom: 24px; }
+#panel-quiz .q-result button { padding: 13px 28px; background: var(--quiz); color: #111; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; font-family: var(--font); cursor: pointer; }
+
+/* ===================== RECHENTRAINER ===================== */
+#panel-trainer .stats { display: flex; gap: 10px; margin-bottom: 18px; }
+#panel-trainer .stat { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+#panel-trainer .stat .v { font-size: 1.5rem; font-weight: 800; font-family: var(--mono); }
+#panel-trainer .stat .l { font-size: 0.72rem; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+#panel-trainer .stat.sg .v { color: var(--trainer); }
+#panel-trainer .stat.sr .v { color: #ef4444; }
+#panel-trainer .stat.ss .v { color: var(--quiz); }
+#panel-trainer .topic-tabs { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
+#panel-trainer .ttab { padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; font-size: 0.82rem; font-weight: 600; font-family: var(--font); transition: all .2s; }
+#panel-trainer .ttab.active { border-color: var(--trainer); background: rgba(34,197,94,.12); color: var(--trainer); }
+#panel-trainer .tcard { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px; }
+#panel-trainer .t-label { font-size: 0.75rem; color: var(--trainer); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 10px; }
+#panel-trainer .t-task { font-size: 1.05rem; line-height: 1.7; color: var(--text); margin-bottom: 22px; }
+#panel-trainer .t-task strong { color: var(--quiz); }
+#panel-trainer .t-input-row { display: flex; gap: 10px; align-items: center; }
+#panel-trainer .t-input-row input { flex: 1; padding: 11px 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 10px; color: var(--text); font-size: 1.1rem; font-family: var(--mono); text-align: right; transition: border-color .2s; }
+#panel-trainer .t-input-row input:focus { outline: none; border-color: var(--trainer); }
+#panel-trainer .t-unit { color: var(--muted); font-size: 0.95rem; white-space: nowrap; min-width: 40px; }
+#panel-trainer .t-hint-btn { background: none; border: 1px dashed var(--border); color: var(--muted); padding: 7px 13px; border-radius: 8px; cursor: pointer; font-size: 0.82rem; font-family: var(--font); margin-top: 10px; transition: all .2s; }
+#panel-trainer .t-hint-btn:hover { border-color: var(--muted); color: var(--text); }
+#panel-trainer .t-hint { display: none; background: rgba(240,165,0,.07); border-left: 4px solid var(--quiz); padding: 10px 14px; border-radius: 6px; margin-top: 8px; font-size: 0.88rem; color: var(--muted); font-family: var(--mono); }
+#panel-trainer .t-check { width: 100%; padding: 13px; background: var(--trainer); color: #0a1a0a; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; font-family: var(--font); cursor: pointer; margin-top: 14px; transition: background .2s; }
+#panel-trainer .t-check:hover { background: #16a34a; }
+#panel-trainer .t-fb { margin-top: 12px; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; line-height: 1.5; display: none; }
+#panel-trainer .t-fb.ok { background: rgba(34,197,94,.1); color: #86efac; border-left: 4px solid var(--trainer); }
+#panel-trainer .t-fb.nok { background: rgba(239,68,68,.1); color: #fca5a5; border-left: 4px solid #ef4444; }
+#panel-trainer .t-next { display: none; width: 100%; padding: 12px; background: var(--quiz); color: #111; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; font-family: var(--font); cursor: pointer; margin-top: 8px; }
+#panel-trainer .t-next:hover { background: #e09500; }
+
+/* ===================== DRAG & DROP ===================== */
+#panel-drag .legend { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+#panel-drag .legend h3 { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+#panel-drag .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 500px) { #panel-drag .legend-grid { grid-template-columns: 1fr; } }
+#panel-drag .li-p { padding: 10px 12px; border-radius: 8px; background: rgba(34,197,94,.08); border-left: 4px solid var(--trainer); font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+#panel-drag .li-a { padding: 10px 12px; border-radius: 8px; background: rgba(240,165,0,.08); border-left: 4px solid var(--quiz); font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+#panel-drag .li-p strong { color: var(--trainer); }
+#panel-drag .li-a strong { color: var(--quiz); }
+#panel-drag .d-info { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+#panel-drag .d-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; border: 1px solid var(--border); color: var(--muted); background: var(--surface); }
+#panel-drag .pool-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
+#panel-drag .pool-box h3 { font-size: 0.8rem; color: var(--muted); text-align: center; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+#panel-drag .pool-grid { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+#panel-drag .pc { background: var(--bg); border: 1px solid var(--drag); border-radius: 10px; padding: 9px 13px; cursor: grab; user-select: none; font-size: 0.88rem; max-width: 260px; text-align: center; transition: transform .15s, box-shadow .15s; color: var(--text); }
+#panel-drag .pc:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(167,139,250,.25); }
+#panel-drag .pc.dragging { opacity: .5; }
+#panel-drag .d-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+@media (max-width: 550px) { #panel-drag .d-cols { grid-template-columns: 1fr; } }
+#panel-drag .dzone { background: var(--surface); border: 2px dashed var(--border); border-radius: 14px; padding: 14px; min-height: 180px; transition: border-color .2s, background .2s; }
+#panel-drag .dzone.over { border-color: var(--drag); background: rgba(167,139,250,.06); }
+#panel-drag .dzone h2 { text-align: center; font-size: 0.95rem; padding: 8px; border-radius: 8px; margin-bottom: 8px; }
+#panel-drag .zp h2 { background: rgba(34,197,94,.1); color: var(--trainer); }
+#panel-drag .za h2 { background: rgba(240,165,0,.1); color: var(--quiz); }
+#panel-drag .zsub { font-size: 0.75rem; text-align: center; color: var(--muted); margin-bottom: 10px; }
+#panel-drag .dc { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; margin-bottom: 7px; font-size: 0.88rem; cursor: grab; transition: all .2s; color: var(--text); }
+#panel-drag .dc.correct-p { border-color: var(--trainer); background: rgba(34,197,94,.1); color: #86efac; }
+#panel-drag .dc.wrong-p { border-color: #ef4444; background: rgba(239,68,68,.1); color: #fca5a5; }
+#panel-drag .d-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+#panel-drag .d-btn { padding: 11px 22px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; font-family: var(--font); cursor: pointer; transition: background .2s; }
+#panel-drag .d-btn-go { background: var(--trainer); color: #0a1a0a; }
+#panel-drag .d-btn-go:hover { background: #16a34a; }
+#panel-drag .d-btn-reset { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+#panel-drag .d-btn-reset:hover { color: var(--text); }
+#panel-drag .d-result { display: none; padding: 14px 18px; border-radius: 12px; text-align: center; }
+#panel-drag .d-result.ok { background: rgba(34,197,94,.1); border: 1px solid var(--trainer); color: #86efac; }
+#panel-drag .d-result.nok { background: rgba(240,165,0,.08); border: 1px solid var(--quiz); color: #fde68a; }
+
+/* ===================== LÜCKENTEXT ===================== */
+#panel-luecke .lu-topbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+#panel-luecke .lu-prog-info { font-size: 0.88rem; color: var(--muted); }
+#panel-luecke .lu-bar-wrap { flex: 1; min-width: 80px; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+#panel-luecke .lu-bar { height: 100%; background: linear-gradient(90deg, var(--luecke), #f9a8d4); transition: width .4s; }
+#panel-luecke .lu-score { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 0.88rem; font-weight: 700; color: var(--luecke); white-space: nowrap; }
+#panel-luecke .lu-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px; }
+#panel-luecke .lu-label { font-size: 0.75rem; color: var(--luecke); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 12px; }
+#panel-luecke .wb { background: var(--bg); border-radius: 10px; padding: 13px; margin-bottom: 14px; }
+#panel-luecke .wb h4 { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+#panel-luecke .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+#panel-luecke .chip { background: var(--surface2); border: 1px solid var(--luecke); border-radius: 20px; padding: 4px 13px; font-size: 0.88rem; color: var(--luecke); cursor: pointer; transition: all .18s; }
+#panel-luecke .chip:hover { background: var(--luecke); color: #0a1220; }
+#panel-luecke .chip.used { opacity: .35; pointer-events: none; }
+#panel-luecke .lu-text { font-size: 1.05rem; line-height: 2.4; color: var(--text); margin-bottom: 18px; }
+#panel-luecke .gap input { width: 120px; padding: 3px 9px; background: var(--bg); border: 2px solid var(--luecke); border-radius: 6px; color: var(--luecke); font-size: 1rem; font-family: var(--mono); text-align: center; transition: all .2s; }
+#panel-luecke .gap input:focus { outline: none; border-color: #f9a8d4; }
+#panel-luecke .gap input.lc { border-color: var(--trainer); background: rgba(34,197,94,.08); color: #86efac; }
+#panel-luecke .gap input.lw { border-color: #ef4444; background: rgba(239,68,68,.08); color: #fca5a5; }
+#panel-luecke .lu-btns { display: flex; gap: 9px; flex-wrap: wrap; }
+#panel-luecke .lu-btn { padding: 11px 20px; border: none; border-radius: 10px; font-size: 0.92rem; font-weight: 700; font-family: var(--font); cursor: pointer; transition: all .2s; }
+#panel-luecke .lb-check { background: var(--luecke); color: #0a1220; }
+#panel-luecke .lb-check:hover { background: #ec4899; }
+#panel-luecke .lb-clear { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+#panel-luecke .lb-next { display: none; background: var(--quiz); color: #111; }
+#panel-luecke .lb-next:hover { background: #e09500; }
+#panel-luecke .lu-fb { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; display: none; }
+#panel-luecke .lu-fb.ok { background: rgba(34,197,94,.1); color: #86efac; border-left: 4px solid var(--trainer); }
+#panel-luecke .lu-fb.nok { background: rgba(239,68,68,.1); color: #fca5a5; border-left: 4px solid #ef4444; }
+#panel-luecke .lu-end { text-align: center; padding: 30px; }
+#panel-luecke .lu-end .emoji { font-size: 3rem; margin-bottom: 10px; }
+#panel-luecke .lu-end h2 { color: var(--luecke); margin-bottom: 8px; }
+#panel-luecke .lu-end p { color: var(--muted); margin-bottom: 14px; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+<div id="root">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand"><span>🎓</span> BES 2 Mathe</div>
+  <div class="nav-sep"></div>
+  <button class="nav-btn home active" onclick="showPanel('home',this)">🏠 Start</button>
+  <button class="nav-btn q" onclick="showPanel('quiz',this)"><div class="nav-dot"></div>Quiz</button>
+  <button class="nav-btn t" onclick="showPanel('trainer',this)"><div class="nav-dot"></div>Rechentrainer</button>
+  <button class="nav-btn d" onclick="showPanel('drag',this)"><div class="nav-dot"></div>Drag & Drop</button>
+  <button class="nav-btn l" onclick="showPanel('luecke',this)"><div class="nav-dot"></div>Lückentext</button>
+  <button class="nav-btn lp" onclick="showPanel('lernpfad',this)">🗺️ Lernpfad</button>
+</nav>
+
+<!-- ==================== HOME ==================== -->
+<div class="panel active" id="panel-home">
+  <div class="home-wrap">
+    <div class="home-hero">
+      <h1>Prüfungsvorbereitung<br><em>Mathematik BES 2</em></h1>
+      <p>Vier interaktive Lernspiele zur Abschlussprüfung – wähle ein Spiel und lege los!</p>
+    </div>
+    <div class="home-grid">
+      <div class="game-card cq" onclick="showPanelById('quiz')">
+        <div class="card-icon">🎯</div>
+        <div class="card-badge">Multiple Choice</div>
+        <div class="card-title">Quiz</div>
+        <div class="card-desc">16 Fragen zu allen Prüfungsthemen – mit Erklärung nach jeder Antwort.</div>
+        <div class="card-topics"><span class="topic-pill">Prozent</span><span class="topic-pill">Zuordnung</span><span class="topic-pill">Geometrie</span><span class="topic-pill">Umrechnung</span></div>
+        <div class="card-arrow">→</div>
+      </div>
+      <div class="game-card ct" onclick="showPanelById('trainer')">
+        <div class="card-icon">🔢</div>
+        <div class="card-badge">Eingabe & Auswertung</div>
+        <div class="card-title">Rechentrainer</div>
+        <div class="card-desc">Unendliche zufällige Aufgaben – gib das Ergebnis ein und erhalte sofortiges Feedback.</div>
+        <div class="card-topics"><span class="topic-pill">Prozentwert</span><span class="topic-pill">Grundwert</span><span class="topic-pill">Dreisatz</span><span class="topic-pill">Geometrie</span></div>
+        <div class="card-arrow">→</div>
+      </div>
+      <div class="game-card cd" onclick="showPanelById('drag')">
+        <div class="card-icon">🧩</div>
+        <div class="card-badge">Drag & Drop</div>
+        <div class="card-title">Proportional zuordnen</div>
+        <div class="card-desc">Ziehe Alltagsbeispiele in die richtige Kategorie – proportional oder antiproportional.</div>
+        <div class="card-topics"><span class="topic-pill">Proportional</span><span class="topic-pill">Antiproportional</span><span class="topic-pill">Alltag</span></div>
+        <div class="card-arrow">→</div>
+      </div>
+      <div class="game-card cl" onclick="showPanelById('luecke')">
+        <div class="card-icon">📝</div>
+        <div class="card-badge">Lückentext</div>
+        <div class="card-title">Formeln & Begriffe</div>
+        <div class="card-desc">Vervollständige Formeln, Rechenregeln und Fachbegriffe – mit Wortbank oder freier Eingabe.</div>
+        <div class="card-topics"><span class="topic-pill">Formeln</span><span class="topic-pill">Begriffe</span><span class="topic-pill">Rechenregeln</span></div>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+    <div class="home-info">
+      <strong>Tipp:</strong> Übe alle vier Spieltypen! Der <strong>Rechentrainer</strong> eignet sich für tägliches Üben, das <strong>Quiz</strong> testet dein Begriffswissen, <strong>Drag & Drop</strong> festigt die Zuordnungsregeln und der <strong>Lückentext</strong> hilft dir, Formeln auswendig zu lernen.
+    </div>
+  </div>
+</div>
+
+<!-- ==================== QUIZ ==================== -->
+<div class="panel" id="panel-quiz">
+  <div class="game-inner">
+    <div class="gi-header">
+      <button class="back-btn" onclick="showPanelById('home')">← Zurück</button>
+      <div><div class="gi-title" style="color:var(--quiz)">🎯 Quiz</div><div class="gi-sub">Multiple Choice · 16 Fragen</div></div>
+    </div>
+    <div class="score-bar">
+      <span>Frage <strong id="q-num">1</strong> von <strong id="q-total">16</strong></span>
+      <span>Punkte: <strong id="q-score">0</strong></span>
+    </div>
+    <div id="q-progress"><div id="q-progress-fill" style="width:0%"></div></div>
+    <div class="qcard" id="q-area">
+      <div class="q-cat" id="q-cat"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="q-opts" id="q-opts"></div>
+      <div class="q-fb" id="q-fb"></div>
+      <button id="q-next" onclick="qNext()">Weiter →</button>
+    </div>
+    <div class="qcard" id="q-result" style="display:none">
+      <div class="q-result">
+        <div class="q-emoji" id="q-emoji"></div>
+        <h2 id="q-res-title"></h2>
+        <p id="q-res-msg"></p>
+        <div class="q-pts" id="q-pts"></div>
+        <button onclick="qRestart()">🔄 Nochmal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RECHENTRAINER ==================== -->
+<div class="panel" id="panel-trainer">
+  <div class="game-inner">
+    <div class="gi-header">
+      <button class="back-btn" onclick="showPanelById('home')">← Zurück</button>
+      <div><div class="gi-title" style="color:var(--trainer)">🔢 Rechentrainer</div><div class="gi-sub">Zufällige Aufgaben · Sofort-Feedback</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat sg"><div class="v" id="t-right">0</div><div class="l">Richtig</div></div>
+      <div class="stat sr"><div class="v" id="t-wrong">0</div><div class="l">Falsch</div></div>
+      <div class="stat ss"><div class="v" id="t-streak">0</div><div class="l">🔥 Serie</div></div>
+    </div>
+    <div class="topic-tabs">
+      <button class="ttab active" onclick="tSetTopic('all',this)">Alle</button>
+      <button class="ttab" onclick="tSetTopic('prozent',this)">Prozent</button>
+      <button class="ttab" onclick="tSetTopic('proportion',this)">Zuordnung</button>
+      <button class="ttab" onclick="tSetTopic('grundrechenarten',this)">Grundrechnen</button>
+      <button class="ttab" onclick="tSetTopic('geometrie',this)">Geometrie</button>
+    </div>
+    <div class="tcard">
+      <div class="t-label" id="t-label">Thema</div>
+      <div class="t-task" id="t-task">Wird geladen…</div>
+      <div class="t-input-row">
+        <input type="number" id="t-input" placeholder="Ergebnis" step="0.01" onkeydown="if(event.key==='Enter')tCheck()">
+        <span class="t-unit" id="t-unit"></span>
+      </div>
+      <button class="t-hint-btn" onclick="tToggleHint()">💡 Tipp</button>
+      <div class="t-hint" id="t-hint"></div>
+      <button class="t-check" onclick="tCheck()">✔ Prüfen</button>
+      <div class="t-fb" id="t-fb"></div>
+      <button class="t-next" id="t-next" onclick="tLoad()">Nächste Aufgabe →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DRAG & DROP ==================== -->
+<div class="panel" id="panel-drag">
+  <div class="game-inner">
+    <div class="gi-header">
+      <button class="back-btn" onclick="showPanelById('home')">← Zurück</button>
+      <div><div class="gi-title" style="color:var(--drag)">🧩 Drag & Drop</div><div class="gi-sub">Proportional vs. Antiproportional</div></div>
+    </div>
+    <div class="legend">
+      <h3>📌 Merkhilfe</h3>
+      <div class="legend-grid">
+        <div class="li-p"><strong>Proportional:</strong> Je mehr → desto mehr. Beide Seiten: gleiche Operation.</div>
+        <div class="li-a"><strong>Antiproportional:</strong> Je mehr → desto weniger. Produkt = konstant.</div>
+      </div>
+    </div>
+    <div class="d-info">
+      <span class="d-badge" id="d-total">Karten: 0</span>
+      <span class="d-badge" style="color:var(--trainer)" id="d-right">✅ Richtig: 0</span>
+      <span class="d-badge" style="color:#ef4444" id="d-wrong">❌ Falsch: 0</span>
+    </div>
+    <div class="pool-box">
+      <h3>Ziehe die Karten in die richtige Spalte ↓</h3>
+      <div class="pool-grid" id="d-pool"></div>
+    </div>
+    <div class="d-cols">
+      <div class="dzone zp" id="dzone-prop" ondragover="dOver(event,'prop')" ondrop="dDrop(event,'prop')" ondragleave="dLeave(event,'prop')">
+        <h2>📈 Proportional</h2><div class="zsub">Je mehr → desto mehr</div>
+      </div>
+      <div class="dzone za" id="dzone-anti" ondragover="dOver(event,'anti')" ondrop="dDrop(event,'anti')" ondragleave="dLeave(event,'anti')">
+        <h2>📉 Antiproportional</h2><div class="zsub">Je mehr → desto weniger</div>
+      </div>
+    </div>
+    <div class="d-btns">
+      <button class="d-btn d-btn-go" onclick="dCheck()">✔ Auswertung</button>
+      <button class="d-btn d-btn-reset" onclick="dReset()">🔄 Neu mischen</button>
+    </div>
+    <div class="d-result" id="d-result">
+      <div id="d-res-score" style="font-size:1.15rem;font-weight:700;margin-bottom:6px"></div>
+      <div id="d-res-detail" style="font-size:0.88rem"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LÜCKENTEXT ==================== -->
+<div class="panel" id="panel-luecke">
+  <div class="game-inner">
+    <div class="gi-header">
+      <button class="back-btn" onclick="showPanelById('home')">← Zurück</button>
+      <div><div class="gi-title" style="color:var(--luecke)">📝 Lückentext</div><div class="gi-sub">Formeln & Begriffe vervollständigen</div></div>
+    </div>
+    <div class="lu-topbar">
+      <div class="lu-prog-info">Aufgabe <span id="lu-num">1</span> von <span id="lu-total">10</span></div>
+      <div class="lu-bar-wrap"><div class="lu-bar" id="lu-bar" style="width:0%"></div></div>
+      <div class="lu-score">🎯 <span id="lu-score">0</span> Punkte</div>
+    </div>
+    <div class="lu-card" id="lu-card">
+      <div class="lu-label" id="lu-label"></div>
+      <div id="lu-wb" class="wb" style="display:none">
+        <h4>🗂 Wortbank – klicke zum Einfügen:</h4>
+        <div class="chips" id="lu-chips"></div>
+      </div>
+      <div class="lu-text" id="lu-text"></div>
+      <div class="lu-btns">
+        <button class="lu-btn lb-check" onclick="luCheck()">✔ Prüfen</button>
+        <button class="lu-btn lb-clear" onclick="luClear()">🗑 Löschen</button>
+        <button class="lu-btn lb-next" id="lu-next" onclick="luNext()">Weiter →</button>
+      </div>
+      <div class="lu-fb" id="lu-fb"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LERNPFAD ==================== -->
+<div class="panel" id="panel-lernpfad">
+  <div class="lp-wrap">
+    <div class="lp-topbar">
+      <button class="back-btn" onclick="showPanelById('home')">← Zurück</button>
+      <div><div class="lp-title">🗺️ Lernpfad</div><div class="lp-sub">Schritt für Schritt zur Prüfung</div></div>
+    </div>
+
+    <div class="lp-progress-wrap">
+      <div class="lp-progress-label">
+        <span>Fortschritt</span>
+        <strong id="lp-count">0 von 4 Schritten abgeschlossen</strong>
+      </div>
+      <div class="lp-bar-bg"><div class="lp-bar-fill" id="lp-bar" style="width:0%"></div></div>
+    </div>
+
+    <div class="lp-steps">
+
+      <div class="lp-step" id="lp-step-lu">
+        <div class="lp-step-num" id="lp-num-lu">1</div>
+        <div class="lp-step-body">
+          <div class="lp-step-head">
+            <div class="lp-step-title">📝 Formeln & Begriffe kennenlernen</div>
+            <span class="lp-step-badge" style="background:rgba(244,114,182,.12);color:#f472b6;border:1px solid rgba(244,114,182,.3)">Lückentext</span>
+          </div>
+          <div class="lp-step-desc">Starte mit dem Lückentext-Spiel und lerne die wichtigsten Formeln und Fachbegriffe auswendig. Das ist die Grundlage für alles andere.</div>
+          <div class="lp-step-goal">Ziel: <span id="lp-goal-lu">0 / 8 Lücken richtig</span></div>
+          <button class="lp-step-btn" id="lp-btn-lu" onclick="showPanelById('luecke')">Zum Lückentext →</button>
+        </div>
+        <div class="lp-done-check">✅</div>
+      </div>
+
+      <div class="lp-step" id="lp-step-drag">
+        <div class="lp-step-num" id="lp-num-drag">2</div>
+        <div class="lp-step-body">
+          <div class="lp-step-head">
+            <div class="lp-step-title">🧩 Zuordnung verstehen</div>
+            <span class="lp-step-badge" style="background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.3)">Drag & Drop</span>
+          </div>
+          <div class="lp-step-desc">Übe den Unterschied zwischen proportionaler und antiproportionaler Zuordnung mit echten Alltagsbeispielen.</div>
+          <div class="lp-step-goal">Ziel: <span id="lp-goal-drag">0 / 7 Karten richtig</span></div>
+          <button class="lp-step-btn" id="lp-btn-drag" onclick="showPanelById('drag')">Zum Drag & Drop →</button>
+        </div>
+        <div class="lp-done-check">✅</div>
+      </div>
+
+      <div class="lp-step" id="lp-step-trainer">
+        <div class="lp-step-num" id="lp-num-trainer">3</div>
+        <div class="lp-step-body">
+          <div class="lp-step-head">
+            <div class="lp-step-title">🔢 Rechnen trainieren</div>
+            <span class="lp-step-badge" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3)">Rechentrainer</span>
+          </div>
+          <div class="lp-step-desc">Übe Prozentrechnung, Dreisatz und Geometrie mit zufällig generierten Aufgaben – so lange, bis es sitzt.</div>
+          <div class="lp-step-goal">Ziel: <span id="lp-goal-trainer">0 / 8 Aufgaben richtig</span></div>
+          <button class="lp-step-btn" id="lp-btn-trainer" onclick="showPanelById('trainer')">Zum Rechentrainer →</button>
+        </div>
+        <div class="lp-done-check">✅</div>
+      </div>
+
+      <div class="lp-step" id="lp-step-quiz">
+        <div class="lp-step-num" id="lp-num-quiz">4</div>
+        <div class="lp-step-body">
+          <div class="lp-step-head">
+            <div class="lp-step-title">🎯 Alles testen</div>
+            <span class="lp-step-badge" style="background:rgba(240,165,0,.12);color:#F0A500;border:1px solid rgba(240,165,0,.3)">Quiz</span>
+          </div>
+          <div class="lp-step-desc">Teste jetzt dein gesamtes Wissen im großen Quiz. 16 Fragen zu allen Prüfungsthemen.</div>
+          <div class="lp-step-goal">Ziel: <span id="lp-goal-quiz">0 / 10 Punkte im Quiz</span></div>
+          <button class="lp-step-btn" id="lp-btn-quiz" onclick="showPanelById('quiz')">Zum Quiz →</button>
+        </div>
+        <div class="lp-done-check">✅</div>
+      </div>
+
+    </div>
+
+    <div class="lp-finish" id="lp-finish">
+      <div class="emoji">🎓</div>
+      <h2>Lernpfad abgeschlossen!</h2>
+      <p>Du hast alle vier Schritte erfolgreich abgeschlossen. Du kennst die Formeln, verstehst die Zuordnungen, kannst rechnen und hast das Quiz bestanden. Viel Erfolg bei der Abschlussprüfung! 🍀</p>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- #root -->
+
+<script>
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (id === 'trainer' && !tInitialized) { tInit(); tInitialized = true; }
+  if (id === 'drag' && !dInitialized) { dReset(); dInitialized = true; }
+  if (id === 'luecke' && !luInitialized) { luRender(); luInitialized = true; }
+  if (id === 'lernpfad') { lpUpdate('trainer', tRightC); lpUpdate('quiz', qScore); lpRefreshBar(); }
+}
+function showPanelById(id) {
+  const btn = [...document.querySelectorAll('.nav-btn')].find(b => {
+    const map = {home:'home',quiz:'q',trainer:'t',drag:'d',luecke:'l',lernpfad:'lp'};
+    return b.classList.contains(map[id]);
+  });
+  showPanel(id, btn);
+}
+
+/* ============================================================
+   QUIZ
+============================================================ */
+const qQuestions = [
+  {cat:"Proportionale Zuordnung",q:"Was trifft auf eine proportionale Zuordnung zu?",opts:["Je mehr Arbeiter, desto weniger Stunden","Wird eine Größe verdoppelt, verdoppelt sich die andere auch","Das Produkt beider Größen ist konstant","Je mehr km, desto weniger Liter"],c:1,exp:"Proportional: Beide Seiten verändern sich gleich. Verdoppelst du eine Seite, verdoppelt sich die andere auch."},
+  {cat:"Antiproportionale Zuordnung",q:"12 Helfer bauen eine Bühne in 4 Stunden auf. Was gilt für eine antiproportionale Zuordnung?",opts:["Je mehr Helfer, desto mehr Stunden","Helfer × Stunden = konstant","Beide Seiten: gleiche Rechenoperation","Das Verhältnis ist immer gleich"],c:1,exp:"Antiproportional: Helfer × Stunden = 12 × 4 = 48 = konstant. Je mehr Helfer, desto weniger Zeit."},
+  {cat:"Proportionale Zuordnung",q:"Tim kauft 3 Hefte für 2,40 €. Wie viel kosten 5 Hefte?",opts:["3,60 €","4,00 €","4,80 €","5,20 €"],c:1,exp:"1 Heft: 2,40 ÷ 3 = 0,80 €. 5 Hefte: 5 × 0,80 = 4,00 €"},
+  {cat:"Antiproportionale Zuordnung",q:"6 Maschinen brauchen 8 Stunden. Wie lange brauchen 4 Maschinen?",opts:["5,3 Std.","6 Std.","10 Std.","12 Std."],c:3,exp:"6 × 8 = 48 Maschinenstunden. 48 ÷ 4 = 12 Stunden."},
+  {cat:"Prozentrechnung",q:"Was ist der Grundwert (G)?",opts:["Der Anteil in Prozent","Das Ganze – die 100 %","Der berechnete Anteil","Der Prozentsatz"],c:1,exp:"Der Grundwert G ist das Ganze – die 100 %. Alle Angaben beziehen sich auf G."},
+  {cat:"Prozentrechnung",q:"Wie berechnet man den Prozentwert W?",opts:["W = G × p ÷ 100","W = G ÷ p × 100","W = p ÷ G × 100","W = G + p"],c:0,exp:"W = G × p ÷ 100. Beispiel: G = 200 €, p = 10 % → W = 20 €"},
+  {cat:"Prozentrechnung",q:"Ein T-Shirt kostet 40 €. Es ist um 25 % reduziert. Wie viel spart man?",opts:["8 €","10 €","12 €","15 €"],c:1,exp:"W = 40 × 25 ÷ 100 = 10 €"},
+  {cat:"Prozentrechnung",q:"Tim hat 80 von 320 Aufgaben gelöst. Wie viel Prozent ist das?",opts:["20 %","25 %","30 %","40 %"],c:1,exp:"p = 80 × 100 ÷ 320 = 25 %"},
+  {cat:"Grundwert berechnen",q:"Der Prozentwert beträgt 45 € und entspricht 30 %. Wie groß ist der Grundwert?",opts:["120 €","135 €","150 €","160 €"],c:2,exp:"G = W × 100 ÷ p = 45 × 100 ÷ 30 = 150 €"},
+  {cat:"Geometrie – Quadrat",q:"Ein Quadrat hat eine Seitenlänge von 7 cm. Wie groß ist der Umfang?",opts:["14 cm","21 cm","28 cm","49 cm"],c:2,exp:"u = 4 × a = 4 × 7 = 28 cm"},
+  {cat:"Geometrie – Quadrat",q:"Der Flächeninhalt eines Quadrats beträgt 49 cm². Wie lang ist eine Seite?",opts:["6 cm","7 cm","8 cm","9 cm"],c:1,exp:"A = a² → a = √49 = 7 cm"},
+  {cat:"Geometrie – Rechteck",q:"Ein Rechteck ist 12 cm lang und 5 cm breit. Wie groß ist die Fläche?",opts:["34 cm²","60 cm²","17 cm²","70 cm²"],c:1,exp:"A = a × b = 12 × 5 = 60 cm²"},
+  {cat:"Geometrie – Rechteck",q:"Was ist die Formel für den Umfang eines Rechtecks?",opts:["u = a × b","u = 4 × a","u = 2 × a + 2 × b","u = a + b"],c:2,exp:"u = 2 × a + 2 × b"},
+  {cat:"Größenumwandlung",q:"Wie viel mm² sind 5,3 cm²?",opts:["5 300 mm²","530 mm²","53 mm²","0,053 mm²"],c:1,exp:"1 cm² = 100 mm². Also: 5,3 × 100 = 530 mm²"},
+  {cat:"Größenumwandlung",q:"Wie rechnet man 3 200 m in km um?",opts:["320 km","32 km","3,2 km","0,32 km"],c:2,exp:"1 km = 1 000 m → 3200 ÷ 1000 = 3,2 km"},
+  {cat:"Prozentrechnung",q:"Lena hat 360 € gespart und gibt 15 % davon aus. Wie viel bleibt übrig?",opts:["54 €","306 €","315 €","300 €"],c:1,exp:"W = 360 × 15 ÷ 100 = 54 €. Übrig: 360 – 54 = 306 €"},
+];
+let qShuffled=[], qIdx=0, qScore=0;
+function qShuffle(a){return [...a].sort(()=>Math.random()-.5);}
+function qStart(){
+  qShuffled=qShuffle(qQuestions); qIdx=0; qScore=0;
+  document.getElementById('q-result').style.display='none';
+  document.getElementById('q-area').style.display='block';
+  document.getElementById('q-total').textContent=qShuffled.length;
+  document.getElementById('q-score').textContent=0;
+  qShow();
+}
+function qShow(){
+  const q=qShuffled[qIdx];
+  document.getElementById('q-num').textContent=qIdx+1;
+  document.getElementById('q-cat').textContent=q.cat;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-fb').style.display='none';
+  document.getElementById('q-next').style.display='none';
+  document.getElementById('q-progress-fill').style.width=(qIdx/qShuffled.length*100)+'%';
+  const opts=document.getElementById('q-opts');
+  opts.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='q-opt'; b.textContent=o;
+    b.onclick=()=>qAnswer(i);
+    opts.appendChild(b);
+  });
+}
+function qAnswer(chosen){
+  const q=qShuffled[qIdx];
+  document.querySelectorAll('#q-opts .q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('q-fb');
+  const btns=document.querySelectorAll('#q-opts .q-opt');
+  if(chosen===q.c){btns[chosen].classList.add('correct');fb.className='q-fb ok';fb.innerHTML='✅ Richtig! '+q.exp;qScore++;document.getElementById('q-score').textContent=qScore;}
+  else{btns[chosen].classList.add('wrong');btns[q.c].classList.add('reveal');fb.className='q-fb nok';fb.innerHTML='❌ Leider falsch. '+q.exp;}
+  fb.style.display='block';
+  document.getElementById('q-next').style.display='block';
+}
+function qNext(){
+  qIdx++;
+  if(qIdx>=qShuffled.length)qResult();else qShow();
+}
+function qResult(){
+  document.getElementById('q-area').style.display='none';
+  document.getElementById('q-result').style.display='block';
+  document.getElementById('q-progress-fill').style.width='100%';
+  const pct=Math.round(qScore/qShuffled.length*100);
+  document.getElementById('q-pts').textContent=qScore+' von '+qShuffled.length+' ('+pct+' %)';
+  const map=pct>=90?['🏆','Ausgezeichnet!','Bestens vorbereitet!']:pct>=67?['😊','Gut gemacht!','Wiederhole noch Fehler-Aufgaben.']:pct>=50?['📚','Weiter üben!','Du bist auf dem richtigen Weg.']:['💪','Nicht aufgeben!','Schau dir die Erklärungen an und versuche es erneut.'];
+  document.getElementById('q-emoji').textContent=map[0];
+  document.getElementById('q-res-title').textContent=map[1];
+  document.getElementById('q-res-msg').textContent=map[2];
+  lpUpdate('quiz', qScore);
+}
+function qRestart(){qStart();}
+qStart();
+
+/* ============================================================
+   RECHENTRAINER
+============================================================ */
+let tInitialized=false, tRightC=0, tWrongC=0, tStreak=0, tTopic='all', tTask=null, tChecked=false;
+function tRnd(a,b,s=1){return a+Math.floor(Math.random()*Math.floor((b-a)/s+1))*s;}
+function tR2(n){return Math.round(n*100)/100;}
+const tGens={
+  prozent:[tGenPW,tGenG,tGenPS,tGenAlltag],
+  proportion:[tGenProp,tGenAnti],
+  grundrechenarten:[tGenAddSub,tGenMulDiv],
+  geometrie:[tGenQuad,tGenRect]
+};
+function tGenPW(){const G=tRnd(100,800,50),p=tRnd(5,40,5),W=tR2(G*p/100);return{t:'Prozentwert berechnen',task:`Grundwert: <strong>${G} €</strong>, Prozentsatz: <strong>${p} %</strong>. Wie groß ist der Prozentwert?`,a:W,u:'€',h:`W = G × p ÷ 100 = ${G} × ${p} ÷ 100`};}
+function tGenG(){const G=tRnd(100,600,50),p=tRnd(10,40,5),W=tR2(G*p/100);return{t:'Grundwert berechnen',task:`Prozentwert: <strong>${W} €</strong>, Prozentsatz: <strong>${p} %</strong>. Wie groß ist der Grundwert?`,a:G,u:'€',h:`G = W × 100 ÷ p = ${W} × 100 ÷ ${p}`};}
+function tGenPS(){const G=tRnd(200,800,100),p=tRnd(5,50,5),W=G*p/100;return{t:'Prozentsatz berechnen',task:`Grundwert: <strong>${G} €</strong>, Prozentwert: <strong>${W} €</strong>. Wie groß ist der Prozentsatz?`,a:p,u:'%',h:`p = W × 100 ÷ G = ${W} × 100 ÷ ${G}`};}
+function tGenAlltag(){const ns=[['Mia','ihrem Konto'],['Tom','seinen Ersparnissen'],['Sara','ihrem Taschengeld']],nm=ns[tRnd(0,2)],G=tRnd(150,600,50),p=tRnd(10,40,5),W=tR2(G*p/100);return{t:'Prozent im Alltag',task:`${nm[0]} hat <strong>${G} €</strong> auf ${nm[1]}. ${nm[0]} gibt <strong>${p} %</strong> davon aus. Wie viel Euro gibt ${nm[0]} aus?`,a:W,u:'€',h:`W = ${G} × ${p} ÷ 100`};}
+function tGenProp(){const t1=tRnd(2,5),k=tR2(tRnd(8,30,2)),t2=tRnd(t1+1,8),a=tR2(k/t1*t2);return{t:'Proportionale Zuordnung',task:`Ben gibt in <strong>${t1} Tagen</strong> insgesamt <strong>${k} €</strong> aus. Wie viel gibt er in <strong>${t2} Tagen</strong> aus?`,a,u:'€',h:`${k} ÷ ${t1} × ${t2}`};}
+function tGenAnti(){const w1=tRnd(4,12),h1=tRnd(4,8),w2=tRnd(2,w1-1),a=tR2(w1*h1/w2);return{t:'Antiproportionale Zuordnung',task:`<strong>${w1} Personen</strong> erledigen eine Aufgabe in <strong>${h1} Stunden</strong>. Wie lange brauchen <strong>${w2} Personen</strong>?`,a,u:'Stunden',h:`${w1} × ${h1} = ${w1*h1} ÷ ${w2}`};}
+function tGenAddSub(){const a=tRnd(200,999),b=tRnd(50,300),op=Math.random()>.5;return op?{t:'Addition',task:`<strong>${a} kg</strong> + <strong>${b} kg</strong> = ?`,a:a+b,u:'kg',h:'Stelle untereinander und addiere spaltenweise.'}:{t:'Subtraktion',task:`<strong>${a} l</strong> − <strong>${b} l</strong> = ?`,a:a-b,u:'l',h:'Stelle untereinander und subtrahiere spaltenweise.'};}
+function tGenMulDiv(){const a=tRnd(3,15),b=tRnd(12,80,4),op=Math.random()>.5;return op?{t:'Multiplikation',task:`<strong>${a} × ${b}</strong> = ?`,a:a*b,u:'',h:`Schriftlich: ${a} × ${b}`}:{t:'Division',task:`<strong>${a*b} ÷ ${a}</strong> = ?`,a:b,u:'',h:`Wie oft geht ${a} in ${a*b}?`};}
+function tGenQuad(){const a=tRnd(3,12),m=Math.random()>.5;return m?{t:'Quadrat – Umfang',task:`Quadrat mit Seitenlänge <strong>a = ${a} cm</strong>. Wie groß ist der Umfang?`,a:4*a,u:'cm',h:'u = 4 × a'}:{t:'Quadrat – Fläche',task:`Quadrat mit Seitenlänge <strong>a = ${a} cm</strong>. Wie groß ist die Fläche?`,a:a*a,u:'cm²',h:'A = a × a = a²'};}
+function tGenRect(){const a=tRnd(6,25),b=tRnd(3,14),m=tRnd(0,1);return m?{t:'Rechteck – Fläche',task:`Rechteck: Länge <strong>${a} cm</strong>, Breite <strong>${b} cm</strong>. Wie groß ist die Fläche?`,a:a*b,u:'cm²',h:'A = a × b'}:{t:'Rechteck – Umfang',task:`Rechteck: Länge <strong>${a} cm</strong>, Breite <strong>${b} cm</strong>. Wie groß ist der Umfang?`,a:2*a+2*b,u:'cm',h:'u = 2 × a + 2 × b'};}
+function tGetGen(){const pool=tTopic==='all'?Object.values(tGens).flat():tGens[tTopic]||Object.values(tGens).flat();return pool[Math.floor(Math.random()*pool.length)];}
+function tInit(){tLoad();}
+function tLoad(){
+  tTask=tGetGen()(); tChecked=false;
+  document.getElementById('t-label').textContent=tTask.t;
+  document.getElementById('t-task').innerHTML=tTask.task;
+  document.getElementById('t-unit').textContent=tTask.u;
+  document.getElementById('t-hint').textContent=tTask.h;
+  document.getElementById('t-hint').style.display='none';
+  document.getElementById('t-fb').style.display='none';
+  document.getElementById('t-next').style.display='none';
+  const inp=document.getElementById('t-input');
+  inp.value=''; inp.disabled=false;
+  setTimeout(()=>inp.focus(),50);
+}
+function tSetTopic(topic,btn){
+  tTopic=topic;
+  document.querySelectorAll('.ttab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  tLoad();
+}
+function tToggleHint(){const h=document.getElementById('t-hint');h.style.display=h.style.display==='none'?'block':'none';}
+function tCheck(){
+  if(tChecked)return; tChecked=true;
+  const inp=document.getElementById('t-input');
+  const val=parseFloat(inp.value.replace(',','.'));
+  if(isNaN(val)){alert('Bitte eine Zahl eingeben!');tChecked=false;return;}
+  inp.disabled=true;
+  const fb=document.getElementById('t-fb');
+  const tol=Math.max(0.05,tTask.a*0.001);
+  if(Math.abs(val-tTask.a)<=tol){tRightC++;tStreak++;fb.className='t-fb ok';fb.innerHTML=`✅ Richtig! ${tTask.a} ${tTask.u}`;} 
+  else{tWrongC++;tStreak=0;fb.className='t-fb nok';fb.innerHTML=`❌ Richtig wäre: <strong>${tTask.a} ${tTask.u}</strong> — ${tTask.h}`;}
+  fb.style.display='block';
+  document.getElementById('t-next').style.display='block';
+  document.getElementById('t-right').textContent=tRightC;
+  document.getElementById('t-wrong').textContent=tWrongC;
+  document.getElementById('t-streak').textContent=tStreak;
+  lpUpdate('trainer', tRightC);
+}
+
+/* ============================================================
+   DRAG & DROP
+============================================================ */
+let dInitialized=false, dPlaced={}, dCards=[], dDraggedId=null, dTouchCard=null, dTouchZone=null;
+const dAllCards=[
+  {id:1,text:"Je mehr Kilometer du fährst, desto mehr Benzin verbrauchst du.",type:"prop"},
+  {id:2,text:"Je mehr Arbeiterinnen, desto weniger Zeit zum Abräumen.",type:"anti"},
+  {id:3,text:"Je mehr Äpfel du kaufst, desto mehr bezahlst du.",type:"prop"},
+  {id:4,text:"Je mehr Maschinen laufen, desto schneller ist die Produktion fertig.",type:"anti"},
+  {id:5,text:"Je länger die Fahrt, desto mehr Stunden sitzt du im Bus.",type:"prop"},
+  {id:6,text:"Je mehr Köche in der Küche, desto weniger Stunden braucht man.",type:"anti"},
+  {id:7,text:"Je mehr Schülerinnen zahlen, desto geringer ist der Anteil pro Person.",type:"anti"},
+  {id:8,text:"Je mehr Hefte du kaufst, desto mehr Euro zahlst du.",type:"prop"},
+  {id:9,text:"3 Freunde brauchen 6 Stunden – 6 Freunde brauchen weniger.",type:"anti"},
+  {id:10,text:"Tim fährt 2-mal so weit und braucht 2-mal so viel Zeit.",type:"prop"},
+  {id:11,text:"Der Preis pro Person sinkt, wenn sich mehr Leute die Kosten teilen.",type:"anti"},
+  {id:12,text:"Mehr Arbeitsstunden → mehr Lohn.",type:"prop"},
+  {id:13,text:"Mehr Pumpen im Einsatz → Keller schneller leer gepumpt.",type:"anti"},
+  {id:14,text:"Doppelt so viel Stoff kaufen kostet doppelt so viel.",type:"prop"},
+  {id:15,text:"Je schneller man fährt, desto kürzer braucht man für die Strecke.",type:"anti"},
+];
+function dReset(){
+  dPlaced={}; dDraggedId=null;
+  dCards=[...dAllCards].sort(()=>Math.random()-.5).slice(0,10);
+  document.getElementById('dzone-prop').querySelectorAll('.dc').forEach(e=>e.remove());
+  document.getElementById('dzone-anti').querySelectorAll('.dc').forEach(e=>e.remove());
+  document.getElementById('d-result').style.display='none';
+  document.getElementById('d-total').textContent='Karten: '+dCards.length;
+  document.getElementById('d-right').textContent='✅ Richtig: 0';
+  document.getElementById('d-wrong').textContent='❌ Falsch: 0';
+  dRenderPool();
+}
+function dRenderPool(){
+  const pool=document.getElementById('d-pool'); pool.innerHTML='';
+  dCards.forEach(c=>{
+    if(dPlaced[c.id])return;
+    const el=document.createElement('div');
+    el.className='pc'; el.id='pc-'+c.id; el.textContent=c.text; el.draggable=true;
+    el.ondragstart=()=>{dDraggedId=c.id;el.classList.add('dragging');};
+    el.ondragend=()=>el.classList.remove('dragging');
+    el.addEventListener('touchstart',e=>{dTouchCard=c.id;},{passive:true});
+    el.addEventListener('touchmove',e=>{
+      e.preventDefault();
+      const t=e.touches[0],el2=document.elementFromPoint(t.clientX,t.clientY);
+      document.querySelectorAll('.dzone').forEach(z=>z.classList.remove('over'));
+      const z=el2&&el2.closest('.dzone');
+      if(z){z.classList.add('over');dTouchZone=z.id.replace('dzone-','');}else dTouchZone=null;
+    },{passive:false});
+    el.addEventListener('touchend',()=>{
+      document.querySelectorAll('.dzone').forEach(z=>z.classList.remove('over'));
+      if(dTouchCard&&dTouchZone)dPlace(dTouchCard,dTouchZone);
+      dTouchCard=null;dTouchZone=null;
+    });
+    pool.appendChild(el);
+  });
+}
+function dOver(e,z){e.preventDefault();document.getElementById('dzone-'+z).classList.add('over');}
+function dLeave(e,z){document.getElementById('dzone-'+z).classList.remove('over');}
+function dDrop(e,z){e.preventDefault();document.getElementById('dzone-'+z).classList.remove('over');if(dDraggedId)dPlace(dDraggedId,z);dDraggedId=null;}
+function dPlace(id,zone){
+  const c=dCards.find(x=>x.id===id); if(!c)return;
+  dPlaced[id]=zone;
+  const pe=document.getElementById('pc-'+id); if(pe)pe.remove();
+  const el=document.createElement('div');
+  el.className='dc'; el.id='dc-'+id; el.textContent=c.text; el.draggable=true;
+  el.ondragstart=()=>{dDraggedId=id;};
+  document.getElementById('dzone-'+zone).appendChild(el);
+}
+function dCheck(){
+  let right=0,wrong=0;
+  dCards.forEach(c=>{
+    const el=document.getElementById('dc-'+c.id); if(!el)return;
+    if(dPlaced[c.id]===c.type){el.classList.add('correct-p');right++;}
+    else{el.classList.add('wrong-p');wrong++;}
+  });
+  const total=right+wrong, res=document.getElementById('d-result');
+  res.style.display='block';
+  res.className='d-result '+(wrong===0?'ok':'nok');
+  document.getElementById('d-res-score').textContent=right+' von '+total+' richtig ('+Math.round(right/Math.max(total,1)*100)+' %)';
+  const unplaced=dCards.length-total;
+  let detail=unplaced>0?unplaced+' Karten nicht zugeordnet. ':'';
+  detail+=wrong>0?'Falsch markierte Karten rot – prüfe die Merkhilfe!':total===dCards.length?'🎉 Alle richtig zugeordnet!':'';
+  document.getElementById('d-res-detail').textContent=detail;
+  document.getElementById('d-right').textContent='✅ Richtig: '+right;
+  document.getElementById('d-wrong').textContent='❌ Falsch: '+wrong;
+  lpUpdate('drag', right);
+}
+
+/* ============================================================
+   LÜCKENTEXT
+============================================================ */
+let luInitialized=false, luIdx=0, luScore=0, luGaps=[], luChecked=false, luLastFocus=null;
+const luExercises=[
+  {label:'Prozentwert berechnen',wb:false,tpl:[{t:'Die Formel für den Prozentwert lautet: W = G × p ÷ '},{b:true,a:'100',h:'W = G × p ÷ ___'},{t:'\n\nBeispiel: G = 400 €, p = 20 %\nW = 400 × 20 ÷ 100 = '},{b:true,a:'80',h:'400 × 20 ÷ 100 = ?'},{t:' €'}]},
+  {label:'Grundwert berechnen',wb:false,tpl:[{t:'Die Formel für den Grundwert lautet: G = W × '},{b:true,a:'100',h:'G = W × ___ ÷ p'},{t:' ÷ p\n\nBeispiel: W = 60 €, p = 15 %\nG = 60 × 100 ÷ 15 = '},{b:true,a:'400',h:'60 × 100 ÷ 15 = ?'},{t:' €'}]},
+  {label:'Prozentsatz berechnen',wb:false,tpl:[{t:'Die Formel für den Prozentsatz lautet: p = W ÷ '},{b:true,a:'G',h:'p = W ÷ ___ × 100'},{t:' × 100\n\nBeispiel: G = 500 €, W = 75 €\np = 75 ÷ 500 × 100 = '},{b:true,a:'15',h:'75 ÷ 500 × 100 = ?'},{t:' %'}]},
+  {label:'Geometrie – Quadrat',wb:true,words:['4','a²','a × a','Seitenlänge','Umfang','Flächeninhalt'],tpl:[{t:'Beim Quadrat gilt:\n\n'},{b:true,a:'Umfang',h:'u = 4 × a heißt ...'},{t:': u = '},{b:true,a:'4',h:'u = ___ × a'},{t:' × a\n\n'},{b:true,a:'Flächeninhalt',h:'A = a² heißt ...'},{t:': A = '},{b:true,a:'a²',h:'A = a × a = ___'}]},
+  {label:'Geometrie – Rechteck',wb:false,tpl:[{t:'Beim Rechteck gilt:\n\nUmfang: u = 2 × '},{b:true,a:'a',h:'u = 2 × ___ + 2 × b'},{t:' + 2 × '},{b:true,a:'b',h:'u = 2 × a + 2 × ___'},{t:'\n\nFlächeninhalt: A = '},{b:true,a:'a',h:'A = ___ × b'},{t:' × '},{b:true,a:'b',h:'A = a × ___'},{t:'\n\nBeispiel: a = 10 cm, b = 4 cm → A = '},{b:true,a:'40',h:'10 × 4 = ?'},{t:' cm²'}]},
+  {label:'Proportionale Zuordnung – Dreisatz',wb:false,tpl:[{t:'Bei der proportionalen Zuordnung gilt:\nJe mehr → desto '},{b:true,a:'mehr',h:'Je mehr ... desto ___'},{t:'.\n\nBeispiel: 5 Äpfel kosten 2,50 €.\n1 Apfel kostet: 2,50 ÷ 5 = '},{b:true,a:'0,50',h:'2,50 ÷ 5 = ?'},{t:' €\n8 Äpfel kosten: 0,50 × 8 = '},{b:true,a:'4,00',h:'0,50 × 8 = ?'},{t:' €'}]},
+  {label:'Antiproportionale Zuordnung – Dreisatz',wb:false,tpl:[{t:'Bei der antiproportionalen Zuordnung gilt:\nJe mehr → desto '},{b:true,a:'weniger',h:'Je mehr ... desto ___'},{t:'.\nDas Produkt beider Größen ist immer '},{b:true,a:'gleich',h:'Das Produkt ist immer ___'},{t:'.\n\nBeispiel: 4 Arbeiterinnen brauchen 6 Stunden.\n1 Arbeiterin: 4 × 6 = '},{b:true,a:'24',h:'4 × 6 = ?'},{t:' Stunden.\n8 Arbeiterinnen: 24 ÷ 8 = '},{b:true,a:'3',h:'24 ÷ 8 = ?'},{t:' Stunden.'}]},
+  {label:'Größenumwandlung',wb:true,words:['10','100','1000','÷','×'],tpl:[{t:'Längen umrechnen:\n1 dm = '},{b:true,a:'10',h:'1 dm = ___ cm'},{t:' cm (dm '},{b:true,a:'×',h:'dm ___ 10 → cm'},{t:' 10)\n1 km = '},{b:true,a:'1000',h:'1 km = ___ m'},{t:' m\n\nFlächen umrechnen:\n1 cm² = '},{b:true,a:'100',h:'1 cm² = ___ mm²'},{t:' mm²\n1 m² = '},{b:true,a:'100',h:'1 m² = ___ dm²'},{t:' dm²'}]},
+  {label:'Rechnen mit Prozent – Alltagsaufgabe',wb:false,tpl:[{t:'Max hat 240 € gespart. Er gibt 25 % für einen Rucksack aus.\n\nSchritt 1: W = 240 × 25 ÷ 100 = '},{b:true,a:'60',h:'240 × 25 ÷ 100 = ?'},{t:' €\n\nSchritt 2: Restbetrag = 240 – 60 = '},{b:true,a:'180',h:'240 – 60 = ?'},{t:' €\n\nMax hat nach dem Kauf noch '},{b:true,a:'180',h:'Restbetrag = ?'},{t:' € übrig.'}]},
+  {label:'Schriftliches Rechnen – Begriffe',wb:true,words:['Dividend','Divisor','Quotient','Faktor','Produkt','Summand','Summe','Differenz'],tpl:[{t:'Beim Addieren heißt das Ergebnis '},{b:true,a:'Summe',h:'a + b = ___'},{t:'.\nBeim Subtrahieren heißt das Ergebnis '},{b:true,a:'Differenz',h:'a – b = ___'},{t:'.\nBeim Multiplizieren heißt das Ergebnis '},{b:true,a:'Produkt',h:'a × b = ___'},{t:'.\nBeim Dividieren heißt das Ergebnis '},{b:true,a:'Quotient',h:'a ÷ b = ___'},{t:'.'}]},
+];
+function luNorm(s){return s.trim().toLowerCase().replace(',','.');}
+function luRender(){
+  const ex=luExercises[luIdx];
+  document.getElementById('lu-num').textContent=luIdx+1;
+  document.getElementById('lu-total').textContent=luExercises.length;
+  document.getElementById('lu-bar').style.width=(luIdx/luExercises.length*100)+'%';
+  document.getElementById('lu-label').textContent=ex.label;
+  document.getElementById('lu-next').style.display='none';
+  document.getElementById('lu-fb').style.display='none';
+  luChecked=false; luGaps=[];
+  const wb=document.getElementById('lu-wb'), chips=document.getElementById('lu-chips');
+  chips.innerHTML='';
+  if(ex.wb&&ex.words){
+    wb.style.display='block';
+    [...ex.words].sort(()=>Math.random()-.5).forEach(w=>{
+      const c=document.createElement('div'); c.className='chip'; c.textContent=w;
+      c.onclick=()=>{
+        const t=luLastFocus&&luGaps.includes(luLastFocus)&&!luLastFocus.disabled?luLastFocus:luGaps.find(g=>g.value===''&&!g.disabled);
+        if(t){t.value=w;c.classList.add('used');}
+      };
+      chips.appendChild(c);
+    });
+  } else wb.style.display='none';
+  const textEl=document.getElementById('lu-text'); textEl.innerHTML=''; let gi=0;
+  ex.tpl.forEach(part=>{
+    if(part.t!==undefined){const s=document.createElement('span');s.innerHTML=part.t.replace(/\n/g,'<br>');textEl.appendChild(s);}
+    else if(part.b){
+      const wrap=document.createElement('span');wrap.className='gap';
+      const inp=document.createElement('input');inp.type='text';inp.placeholder='___';
+      inp.dataset.answer=part.a;inp.dataset.hint=part.h;inp.autocomplete='off';
+      inp.addEventListener('focus',()=>luLastFocus=inp);
+      wrap.appendChild(inp); textEl.appendChild(wrap); luGaps.push(inp); gi++;
+    }
+  });
+  if(luGaps[0])setTimeout(()=>luGaps[0].focus(),50);
+}
+function luCheck(){
+  if(luChecked)return; luChecked=true;
+  let right=0;
+  luGaps.forEach(inp=>{
+    const alts=inp.dataset.answer.split('|');
+    const ok=alts.some(a=>luNorm(inp.value)===luNorm(a));
+    inp.classList.add(ok?'lc':'lw'); inp.disabled=true;
+    if(ok)right++;else inp.title='Richtig: '+inp.dataset.answer;
+  });
+  const fb=document.getElementById('lu-fb');
+  luScore+=right; document.getElementById('lu-score').textContent=luScore;
+  if(right===luGaps.length){fb.className='lu-fb ok';fb.innerHTML='✅ Alle Lücken richtig! +'+right+' Punkte';}
+  else{fb.className='lu-fb nok';fb.innerHTML=right+' von '+luGaps.length+' richtig. Falsche Felder zeigen beim Mouseover die richtige Antwort.';}
+  fb.style.display='block'; document.getElementById('lu-next').style.display='block';
+  lpUpdate('lu', luScore);
+}
+function luClear(){
+  luGaps.forEach(g=>{g.value='';g.className='';g.disabled=false;});
+  document.getElementById('lu-fb').style.display='none';
+  document.getElementById('lu-next').style.display='none';
+  document.querySelectorAll('#lu-chips .chip').forEach(c=>c.classList.remove('used'));
+  luChecked=false;
+}
+function luNext(){
+  luIdx++;
+  if(luIdx>=luExercises.length){luEnd();}else luRender();
+}
+function luEnd(){
+  document.getElementById('lu-bar').style.width='100%';
+  const maxPts=luExercises.reduce((s,e)=>s+e.tpl.filter(p=>p.b).length,0);
+  const pct=Math.round(luScore/maxPts*100);
+  const emoji=pct>=90?'🏆':pct>=70?'😊':'📚';
+  const msg=pct>=90?'Hervorragend! Du kennst alle Formeln.':pct>=70?'Gut gemacht! Wiederhole noch Fehler-Aufgaben.':'Weiter üben – schau dir die Formelsammlung an!';
+  document.getElementById('lu-card').innerHTML=`<div class="lu-end"><div class="emoji">${emoji}</div><h2>Fertig!</h2><p>${msg}</p><p style="color:var(--luecke);font-size:1.2rem;font-weight:800;margin-bottom:16px">${luScore} von ${maxPts} Punkten (${pct} %)</p><button class="lu-btn lb-check" onclick="luRestart()">🔄 Nochmal</button></div>`;
+  lpUpdate('lu', luScore);
+}
+function luRestart(){luIdx=0;luScore=0;document.getElementById('lu-score').textContent=0;document.getElementById('lu-card').innerHTML=`<div class="lu-label" id="lu-label"></div><div id="lu-wb" class="wb" style="display:none"><h4>🗂 Wortbank – klicke zum Einfügen:</h4><div class="chips" id="lu-chips"></div></div><div class="lu-text" id="lu-text"></div><div class="lu-btns"><button class="lu-btn lb-check" onclick="luCheck()">✔ Prüfen</button><button class="lu-btn lb-clear" onclick="luClear()">🗑 Löschen</button><button class="lu-btn lb-next" id="lu-next" onclick="luNext()">Weiter →</button></div><div class="lu-fb" id="lu-fb"></div>`;luGaps=[];luChecked=false;luLastFocus=null;luRender();}
+
+/* ============================================================
+   LERNPFAD
+============================================================ */
+const lp = { lu: 0, drag: 0, trainer: 0, quiz: 0 };
+const lpGoals = { lu: 8, drag: 7, trainer: 8, quiz: 10 };
+const lpDone = { lu: false, drag: false, trainer: false, quiz: false };
+const lpLabelMap = { lu: 'lu', drag: 'drag', trainer: 'trainer', quiz: 'quiz' };
+const lpSuffix = { lu: ' Lücken richtig', drag: ' Karten richtig', trainer: ' Aufgaben richtig', quiz: ' Punkte im Quiz' };
+
+function lpUpdate(key, value) {
+  lp[key] = Math.max(lp[key], value);
+  const goalEl = document.getElementById('lp-goal-' + key);
+  if (goalEl) goalEl.textContent = lp[key] + ' / ' + lpGoals[key] + lpSuffix[key];
+  if (!lpDone[key] && lp[key] >= lpGoals[key]) {
+    lpDone[key] = true;
+    const step = document.getElementById('lp-step-' + key);
+    if (step) step.classList.add('done');
+    const btn = document.getElementById('lp-btn-' + key);
+    if (btn) btn.textContent = '✅ Erledigt';
+    lpRefreshBar();
+  }
+}
+
+function lpRefreshBar() {
+  const done = Object.values(lpDone).filter(Boolean).length;
+  const bar = document.getElementById('lp-bar');
+  const count = document.getElementById('lp-count');
+  if (bar) bar.style.width = (done / 4 * 100) + '%';
+  if (count) count.textContent = done + ' von 4 Schritten abgeschlossen';
+  ['lu','drag','trainer','quiz'].forEach(k => {
+    const el = document.getElementById('lp-step-' + k);
+    if (el) el.classList.remove('active-step');
+  });
+  const nextKey = ['lu','drag','trainer','quiz'].find(k => !lpDone[k]);
+  if (nextKey) {
+    const el = document.getElementById('lp-step-' + nextKey);
+    if (el) el.classList.add('active-step');
+  }
+  if (done === 4) {
+    const finish = document.getElementById('lp-finish');
+    if (finish && !finish.classList.contains('visible')) finish.classList.add('visible');
+  }
+}
+
+lpRefreshBar();
+
+
+</script>
+</body>
+</html>

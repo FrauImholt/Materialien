@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lagereinrichtung – Übungsapp · LF 2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #f0f4f8;
+    --surface: #ffffff;
+    --card:    #ffffff;
+    --border:  #c8d6e5;
+    --accent:  #1a4f8c;
+    --green:   #1a7a4a;
+    --red:     #c0392b;
+    --yellow:  #b7770d;
+    --purple:  #5b4fcf;
+    --text:    #1c2833;
+    --muted:   #5d6d7e;
+    --sans:    'DM Sans', sans-serif;
+    --serif:   'DM Serif Display', serif;
+    --mono:    'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.65; min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1a4f8c 0%, #22639e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon { width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #1a4f8c, #2874a6); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .logo h1 { font-family: var(--serif); font-size: 1.25rem; }
+  .logo p  { font-size: .75rem; color: var(--muted); }
+  .live-pts { background: #1a4f8c; border: 1px solid #1a4f8c; border-radius: 10px; padding: 8px 18px; font-family: var(--mono); font-size: .85rem; color: #ffffff; }
+
+  /* TABS */
+  .tab-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; overflow-x: auto; gap: 0; }
+  .tab { padding: 11px 16px; font-size: .77rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .2s, border-color .2s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab.done   { color: var(--green); }
+
+  /* SECTIONS */
+  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+  .sec { display: none; animation: fu .3s ease; }
+  .sec.active { display: block; }
+  @keyframes fu { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  .sec-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
+  .sec-num { width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0; background: linear-gradient(135deg, #1a4f8c 0%, #2874a6 100%); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 600; font-size: .9rem; }
+  .sec-title h2 { font-family: var(--serif); font-size: 1.25rem; }
+  .sec-title p  { color: var(--muted); font-size: .8rem; margin-top: 2px; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 13px; padding: 20px 22px; margin-bottom: 14px; }
+  .card.c-ok  { border-color: var(--green); background: #0d2b1e; }
+  .card.c-err { border-color: var(--red);   background: #2b0d0d; }
+
+  .pts-tag { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 1px 7px; font-family: var(--mono); font-size: .7rem; color: var(--muted); margin-left: 6px; vertical-align: middle; }
+  .q-num  { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-bottom: 6px; }
+  .q-text { font-size: .92rem; margin-bottom: 2px; }
+
+  /* TRUE/FALSE */
+  .tf-opts { display: flex; gap: 10px; margin-top: 12px; }
+  .tf-btn {
+    flex: 1; padding: 10px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-family: var(--sans);
+    font-size: .88rem; cursor: pointer; transition: all .18s; font-weight: 500;
+  }
+  .tf-btn:hover:not(:disabled) { border-color: var(--accent); background: #e8f0fa; }
+  .tf-btn.t-ok  { background: #eafaf1; border-color: var(--green); color: var(--green); }
+  .tf-btn.t-err { background: #fdedec; border-color: var(--red);   color: var(--red);   }
+  .tf-btn.t-show{ background: #eafaf1; border-color: var(--green); color: var(--green); }
+  .tf-btn:disabled { pointer-events: none; }
+
+  /* MC */
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
+  @media(max-width:540px){ .mc-grid { grid-template-columns: 1fr; } }
+  .mc-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
+    padding: 10px 13px; cursor: pointer; font-size: .86rem; transition: all .18s;
+    text-align: left; color: var(--text); font-family: var(--sans);
+  }
+  .mc-btn:hover:not(:disabled) { border-color: var(--accent); background: #e8f0fa; }
+  .mc-btn.m-ok   { border-color: var(--green); background: #eafaf1; pointer-events: none; }
+  .mc-btn.m-err  { border-color: var(--red);   background: #fdedec; pointer-events: none; }
+  .mc-btn.m-show { border-color: var(--green); background: #eafaf1; pointer-events: none; }
+  .mc-btn:disabled { pointer-events: none; }
+
+  /* LÜCKENTEXT */
+  .lueck-sel {
+    background: var(--surface); color: var(--text); border: 1px solid var(--accent);
+    border-radius: 6px; padding: 2px 26px 2px 8px; font-family: var(--sans); font-size: .86rem;
+    cursor: pointer; outline: none; appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 7px center; transition: border-color .2s;
+  }
+  .lueck-sel:focus { border-color: var(--yellow); }
+  .lueck-sel.ls-ok  { border-color: var(--green); background-color: #0d2b1e; }
+  .lueck-sel.ls-err { border-color: var(--red);   background-color: #2b0d0d; }
+  .lueck-text { line-height: 2.4; font-size: .92rem; }
+
+  /* SORTIER / DRAG */
+  .sort-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .sort-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 9px;
+    padding: 10px 14px; cursor: grab; font-size: .88rem; display: flex; align-items: center; gap: 10px;
+    transition: border-color .2s, opacity .2s; user-select: none;
+  }
+  .sort-item:active { cursor: grabbing; opacity: .7; }
+  .sort-item .drag-handle { color: var(--muted); font-size: .8rem; }
+  .sort-item.si-ok  { border-color: var(--green); background: #eafaf1; }
+  .sort-item.si-err { border-color: var(--red);   background: #fdedec; }
+
+  /* ZUORDNUNG DRAG */
+  .zuo-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+  @media(max-width:560px){ .zuo-wrap { grid-template-columns: 1fr; } }
+  .zuo-col h4 { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
+  .zuo-pool { display: flex; flex-direction: column; gap: 7px; min-height: 60px; }
+  .zuo-chip {
+    background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;
+    padding: 8px 12px; cursor: grab; font-size: .84rem; transition: border-color .2s, opacity .2s; user-select: none;
+  }
+  .zuo-chip:active { cursor: grabbing; opacity: .7; }
+  .zuo-chip.dragging { opacity: .4; }
+  .zuo-drop {
+    min-height: 48px; border: 1.5px dashed var(--border); border-radius: 10px;
+    padding: 6px 8px; display: flex; flex-direction: column; gap: 6px;
+    background: #f0f5fb; transition: border-color .2s, background .2s;
+  }
+  .zuo-drop.drag-over { border-color: var(--accent); background: #dce8f5; }
+  .zuo-drop.d-ok  { border-color: var(--green); background: #eafaf1; }
+  .zuo-drop.d-err { border-color: var(--red);   background: #fdedec; }
+  .drop-label { font-size: .8rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+
+  /* FEEDBACK */
+  .fb { margin-top: 10px; padding: 9px 13px; border-radius: 8px; font-size: .83rem; display: none; }
+  .fb.show { display: block; }
+  .fb.ok  { background: #eafaf1; color: #1a7a4a;  border: 1px solid #a9dfbf; }
+  .fb.err { background: #fdedec; color: #c0392b;       border: 1px solid #f5b7b1; }
+  .fb.inf { background: #fef9e7; color: #b7770d;  border: 1px solid #f9e79f; }
+
+  /* BUTTONS */
+  .btn { padding: 9px 20px; border-radius: 9px; font-family: var(--sans); font-weight: 500; font-size: .86rem; cursor: pointer; border: none; transition: all .18s; display: inline-flex; align-items: center; gap: 7px; }
+  .btn-p { background: var(--accent); color: #fff; }
+  .btn-p:hover { background: #6a9ef8; transform: translateY(-1px); }
+  .btn-g { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-g:hover { border-color: var(--text); color: var(--text); }
+  .btn-v { background: var(--green); color: #0a1a10; }
+  .btn-v:hover { background: #5de0a8; }
+  .btn-row { display: flex; gap: 9px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+
+  /* ERGEBNIS */
+  #sec5 { text-align: center; padding: 30px 10px; }
+  .res-ring { width: 130px; height: 130px; border-radius: 50%; border: 5px solid var(--green); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .res-pts  { font-family: var(--mono); font-size: 1.9rem; font-weight: 600; }
+  .res-lbl  { font-size: .68rem; color: var(--muted); }
+  .res-note { font-family: var(--serif); font-size: 2.2rem; margin-bottom: 6px; }
+  .res-msg  { color: var(--muted); font-size: .88rem; }
+  .bar-wrap { max-width: 420px; margin: 24px auto; }
+  .bar-row  { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; font-size: .8rem; }
+  .bar-lbl  { width: 110px; text-align: right; color: var(--muted); flex-shrink: 0; }
+  .bar-trk  { flex: 1; height: 7px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .8s .2s; }
+  .bar-pts  { width: 36px; font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+
+  /* CALC */
+  .calc-formula { background: var(--surface); border-left: 3px solid var(--purple); padding: 7px 12px; border-radius: 0 8px 8px 0; font-size: .79rem; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+  .calc-inp { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 13px; color: var(--text); font-family: var(--mono); font-size: .88rem; outline: none; width: 160px; transition: border-color .2s; }
+  .calc-inp:focus { border-color: var(--accent); }
+  .calc-inp.ci-ok  { border-color: var(--green); background: #0d2b1e; }
+  .calc-inp.ci-err { border-color: var(--red);   background: #2b0d0d; }
+  .calc-unit { color: var(--muted); font-size: .83rem; }
+  .inp-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #a8bdd4; border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏭</div>
+    <div>
+      <h1 style="color:#ffffff">Lagereinrichtung – Übungsapp</h1>
+      <p style="color:#b8d4f0">LF 2 · Fachkraft für Lagerlogistik · 1. Ausbildungsjahr</p>
+    </div>
+  </div>
+  <div class="live-pts" id="live-pts">0 / 50 Pkt.</div>
+</header>
+
+<div class="tab-bar">
+  <div class="tab active" id="tab0" onclick="goto(0)">① Richtig/Falsch</div>
+  <div class="tab" id="tab1" onclick="goto(1)">② Lückentext</div>
+  <div class="tab" id="tab2" onclick="goto(2)">③ Multiple Choice</div>
+  <div class="tab" id="tab3" onclick="goto(3)">④ Zuordnung</div>
+  <div class="tab" id="tab4" onclick="goto(4)">⑤ Rechnen</div>
+  <div class="tab" id="tab5" onclick="goto(5)">🏁 Ergebnis</div>
+</div>
+
+<main>
+
+<!-- ══ A1: RICHTIG/FALSCH ══ -->
+<div class="sec active" id="sec0">
+  <div class="sec-head">
+    <div class="sec-num">A1</div>
+    <div class="sec-title">
+      <h2>Richtig oder Falsch?</h2>
+      <p>Entscheide bei jeder Aussage, ob sie korrekt ist. Sofortiges Feedback nach jedem Klick. <span class="pts-tag">12 P.</span></p>
+    </div>
+  </div>
+  <div id="tf-container"></div>
+  <div class="btn-row">
+    <button class="btn btn-g" onclick="resetTF()">Zurücksetzen</button>
+    <button class="btn btn-g" onclick="goto(1)" style="margin-left:auto">Weiter →</button>
+  </div>
+</div>
+
+<!-- ══ A2: LÜCKENTEXT ══ -->
+<div class="sec" id="sec1">
+  <div class="sec-head">
+    <div class="sec-num">A2</div>
+    <div class="sec-title">
+      <h2>Lückentext – Regalarten</h2>
+      <p>Wähle den richtigen Begriff aus den Dropdowns. <span class="pts-tag">8 P.</span></p>
+    </div>
+  </div>
+  <div class="card">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:.79rem;color:var(--muted);">
+      <strong style="color:var(--text);">Begriffe:</strong>
+      Palettenregal · Kragarmregal · Durchlaufregal · Einfahrregal · Fachbodenregal · Wabenregal · Verschieberegal · Hochregal
+    </div>
+    <p class="lueck-text" id="lueck-body">
+      Das <select class="lueck-sel" id="lb1"><option value="">– –</option></select> (1)
+      ist das am weitesten verbreitete Regal im modernen Lager und ermöglicht die Einlagerung von Europaletten in mehreren Ebenen mit direktem Zugriff per Stapler.<br><br>
+      Für die Lagerung von Rohren, Profilen und Trägern eignet sich besonders das
+      <select class="lueck-sel" id="lb2"><option value="">– –</option></select> (2),
+      da seine offene Konstruktion das seitliche Einlagern sperriger Güter ermöglicht.<br><br>
+      Beim <select class="lueck-sel" id="lb3"><option value="">– –</option></select> (3)
+      gleiten die Güter auf geneigten Rollenbahnen durch Schwerkraft zur Entnahmeseite – dieses Prinzip garantiert automatisch FIFO und eignet sich besonders gut für Lebensmittel.<br><br>
+      Fahrzeuge können beim <select class="lueck-sel" id="lb4"><option value="">– –</option></select> (4)
+      direkt in die Regalzeile einfahren. Da Ein- und Auslagerung von derselben Seite erfolgen, gilt das LIFO-Prinzip.<br><br>
+      Das <select class="lueck-sel" id="lb5"><option value="">– –</option></select> (5)
+      ist besonders flexibel: Fachböden lassen sich leicht verstellen und es eignet sich für Kartons, Behälter und Kleinteile unterschiedlicher Größe.<br><br>
+      Zylindrische Fächer zur Aufnahme von Gütern mit rundem Querschnitt sind das Merkmal des
+      <select class="lueck-sel" id="lb6"><option value="">– –</option></select> (6).<br><br>
+      Durch verschiebbare Regalblöcke ohne feste Fahrgassen erzielt das
+      <select class="lueck-sel" id="lb7"><option value="">– –</option></select> (7)
+      eine besonders hohe Flächennutzung und eignet sich für Archive oder Kleinteilelager.<br><br>
+      Ein Regal, das mindestens <select class="lueck-sel" id="lb8"><option value="">– –</option></select> (8) Meter hoch ist und in der Regel nur noch maschinell bedient werden kann, wird als Hochregal bezeichnet.
+    </p>
+    <div class="fb" id="lueck-fb"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="auswerteLueck()">Auswerten</button>
+    <button class="btn btn-g" onclick="resetLueck()">Zurücksetzen</button>
+    <button class="btn btn-g" onclick="goto(0)">← Zurück</button>
+    <button class="btn btn-g" onclick="goto(2)" style="margin-left:auto">Weiter →</button>
+  </div>
+</div>
+
+<!-- ══ A3: MC ══ -->
+<div class="sec" id="sec2">
+  <div class="sec-head">
+    <div class="sec-num">A3</div>
+    <div class="sec-title">
+      <h2>Multiple Choice</h2>
+      <p>Eine Antwort pro Frage ist korrekt. Sofortiges Feedback. <span class="pts-tag">12 P.</span></p>
+    </div>
+  </div>
+  <div id="mc-container"></div>
+  <div class="btn-row">
+    <button class="btn btn-g" onclick="resetMC()">Zurücksetzen</button>
+    <button class="btn btn-g" onclick="goto(1)">← Zurück</button>
+    <button class="btn btn-g" onclick="goto(3)" style="margin-left:auto">Weiter →</button>
+  </div>
+</div>
+
+<!-- ══ A4: ZUORDNUNG ══ -->
+<div class="sec" id="sec3">
+  <div class="sec-head">
+    <div class="sec-num">A4</div>
+    <div class="sec-title">
+      <h2>Zuordnung – Lagerprinzipien</h2>
+      <p>Ziehe die Begriffe in die richtige Kategorie. <span class="pts-tag">10 P.</span></p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="zuo-wrap" id="zuo-wrap"></div>
+    <div class="fb" id="zuo-fb" style="margin-top:14px"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="auswerteZuo()">Auswerten</button>
+    <button class="btn btn-g" onclick="resetZuo()">Zurücksetzen</button>
+    <button class="btn btn-g" onclick="goto(2)">← Zurück</button>
+    <button class="btn btn-g" onclick="goto(4)" style="margin-left:auto">Weiter →</button>
+  </div>
+</div>
+
+<!-- ══ A5: RECHNEN ══ -->
+<div class="sec" id="sec4">
+  <div class="sec-head">
+    <div class="sec-num">A5</div>
+    <div class="sec-title">
+      <h2>Rechenaufgaben – Lagerkosten & Kapazität</h2>
+      <p>Taschenrechner erlaubt. Gib dein Ergebnis ein. <span class="pts-tag">8 P.</span></p>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--surface);border-color:var(--accent);margin-bottom:20px;background:#eef4fb">
+    <p style="font-size:.79rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Betriebssituation</p>
+    <p style="font-size:.9rem">Das Lager der <strong>MegaStore GmbH</strong> verfügt über folgende Daten:</p>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin-top:10px;font-size:.84rem">
+      <span style="color:var(--muted)">Lagerkapazität:</span><span>500 Stellplätze gesamt</span>
+      <span style="color:var(--muted)">Belegt:</span><span>375 Stellplätze</span>
+      <span style="color:var(--muted)">Lagerkosten:</span><span>90.000 € / Jahr</span>
+      <span style="color:var(--muted)">Lagerdurchsatz:</span><span>3.000 Paletten / Jahr eingelagert</span>
+      <span style="color:var(--muted)">Neues Regal:</span><span>6 Zeilen × 10 Felder × 5 Ebenen; Kosten 24.000 €/Jahr</span>
+    </div>
+  </div>
+  <div id="calc-container"></div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="auswerteCalc()">Alle auswerten</button>
+    <button class="btn btn-g" onclick="resetCalc()">Zurücksetzen</button>
+    <button class="btn btn-g" onclick="goto(3)">← Zurück</button>
+    <button class="btn btn-v" onclick="goto(5)" style="margin-left:auto">Ergebnis 🏁</button>
+  </div>
+</div>
+
+<!-- ══ ERGEBNIS ══ -->
+<div class="sec" id="sec5">
+  <div style="text-align:center;padding:30px 10px">
+    <div class="res-ring" id="res-ring">
+      <div class="res-pts" id="res-pts">–</div>
+      <div class="res-lbl">Punkte</div>
+    </div>
+    <div class="res-note" id="res-note">–</div>
+    <div class="res-msg"  id="res-msg">Beende alle Aufgaben.</div>
+    <div class="bar-wrap" id="bar-wrap"></div>
+    <button class="btn btn-p" onclick="resetAll()" style="margin-top:14px">Neu starten</button>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────
+const TF_DATA = [
+  { s:"Die Reihenlagerung ermöglicht FIFO, weil jede Lagereinheit direkt zugänglich ist.", ok:true },
+  { s:"Das Durchlaufregal arbeitet nach dem LIFO-Prinzip, da Güter von vorne ein- und ausgelagert werden.", ok:false },
+  { s:"Ein Hochregallager beginnt erst ab einer Lagerhöhe von 12 Metern und wird durch computergesteuerte Regalbediengeräte bedient.", ok:true },
+  { s:"Bei der Bodenlagerung darf die Schlankheit eines Stapels (Verhältnis Höhe zu Schmalseite der Grundfläche) maximal 6:1 betragen.", ok:true },
+  { s:"Das Kragarmregal eignet sich besonders gut für die Lagerung von Langgut wie Rohre und Profile.", ok:true },
+  { s:"Beim Einfahrregal erfolgt die Ein- und Auslagerung immer von zwei verschiedenen Seiten.", ok:false },
+  { s:"Im Hochregallager wird am I-Punkt (Identifikationspunkt) Kontur, Gewicht und Artikelnummer jeder Palette gescannt, um den optimalen Lagerplatz zu berechnen.", ok:true },
+  { s:"Das Einschubregal garantiert das FIFO-Prinzip, weil die zuerst eingeschobene Palette vorne steht.", ok:false },
+  { s:"Beim Kommissionierprinzip \u201eWare zum Mann\u201c kommt die Ware automatisch zum Mitarbeiter.", ok:true },
+  { s:"Ein Fachbodenregal kann problemlos an ein verändertes Sortiment angepasst werden.", ok:true },
+  { s:"Im Durchlaufregal können problemlos verschiedene Artikel gemischt auf einer Rollenbahn eingelagert werden.", ok:false },
+  { s:"Das AutoStore-System ermöglicht durch den Wegfall von Regalgassen eine Platzersparnis von bis zu 60\u202f% gegenüber klassischen Regalanlagen.", ok:true },
+  { s:"Paternosterregale eignen sich besonders gut für schwere Schüttgüter wie Sand und Granulat.", ok:false },
+  { s:"Die Feldlast eines Regals gibt die maximale Gesamtlast an, die alle Ebenen eines einzelnen Regalfelds zusammen tragen dürfen.", ok:true }
+];
+
+const LUECK_CORRECT = {
+  lb1:"Palettenregal", lb2:"Kragarmregal", lb3:"Durchlaufregal", lb4:"Einfahrregal",
+  lb5:"Fachbodenregal", lb6:"Wabenregal", lb7:"Verschieberegal", lb8:"12"
+};
+const LUECK_OPTS_1_7 = ["Palettenregal","Kragarmregal","Durchlaufregal","Einfahrregal","Fachbodenregal","Wabenregal","Verschieberegal","Hochregal"];
+const LUECK_OPTS_8   = ["3","6","10","12","20"];
+
+const MC_DATA = [
+  { q:"Welches Lagerungsprinzip gilt bei der Blocklagerung?",
+    opts:["FIFO – First In, First Out","FEFO – First Expired, First Out","LIFO – Last In, First Out","Zufallsprinzip"], ans:2 },
+  { q:"Welches Regal ermöglicht die höchste Lagerdichte bei homogenen Gütern in großen Chargen?",
+    opts:["Fachbodenregal","Verschieberegal","Einfahrregal","Kragarmregal"], ans:2 },
+  { q:"Was ist der Hauptvorteil der Reihenlagerung gegenüber der Blocklagerung?",
+    opts:["H\u00f6here Fl\u00e4chennutzung","Direkter Zugriff auf jede Lagereinheit","Geringere Investitionskosten","Keine Einschr\u00e4nkungen bei der Stapelh\u00f6he"], ans:1 },
+  { q:"Welches Regal setzt zwingend spezielle Fördermittel (z. B. Regalbediengerät) voraus?",
+    opts:["Fachbodenregal","Kragarmregal","Hochregal ab ca. 12 m","Palettenregal"], ans:2 },
+  { q:"Welcher Begriff beschreibt die Menge an Gütern, die ein Lager pro Zeiteinheit ein- und auslagern kann?",
+    opts:["Lagerkapazit\u00e4t","Lagerdurchsatz","Fl\u00e4chennutzungsgrad","Umschlagsh\u00e4ufigkeit"], ans:1 },
+  { q:"Welche Aussage zum Einschubregal ist korrekt?",
+    opts:["Güter gleiten durch Schwerkraft zur Entnahmeseite.","Paletten werden auf Schienen in die Tiefe eingeschoben; LIFO.","Ein- und Auslagerung von zwei Seiten; FIFO.","Es ist ausschließlich für Langgut geeignet."], ans:1 },
+  { q:"Welche Lagerart eignet sich am besten für verderbliche Güter mit einem festen Mindesthaltbarkeitsdatum?",
+    opts:["Blocklagerung","Einfahrregal","Durchlaufregal","Verschieberegal"], ans:2 },
+  { q:"Was versteht man unter dem Begriff 'statische Bereitstellung'?",
+    opts:["Die Ware kommt automatisch zum Mitarbeiter.","Der Mitarbeiter geht zur fest positionierten Ware.","Die Ware wird durch Roboter bewegt.","Die Ware wird täglich neu einsortiert."], ans:1 },
+  { q:"Ein Betrieb lagert ausschließlich Stahlrohre mit einem Durchmesser von 120 mm und einer Länge von 6 m. Welches Regal ist am geeignetsten?",
+    opts:["Fachbodenregal","Palettenregal","Wabenregal","Umlaufregal"], ans:2 },
+  { q:"Welche Aussage zur Bodenlagerung ist RICHTIG?",
+    opts:["Sie ist immer kostengünstiger als Regallagerung.","Sie eignet sich nur für Innenräume.","Sie ermöglicht bei großen Beständen eine gute Übersichtlichkeit.","Sie ist besonders für stapelbare, homogene Güter geeignet."], ans:3 },
+  { q:"Welches Merkmal kennzeichnet das Durchfahrregal?",
+    opts:["FIFO durch Schwerkraft","Fahrzeuge fahren von einer oder zwei Seiten ein; LIFO oder FIFO möglich","Automatische Bedienung per Regalbediengerät","Besonders für Kleinteile und Kartons geeignet"], ans:1 },
+  { q:"Was ist der K-Punkt im Hochregallager?",
+    opts:["Der Startpunkt für die Einlagerung","Der Kontrollpunkt bei der Auslagerung, an dem die Ware auf Vollständigkeit geprüft wird","Ein Knotenpunkt im Fördersystem","Die Bezeichnung für das Kommissionierlager"], ans:1 },
+  { q:"Welche Sicherheitsvorschrift gilt bei der Bodenlagerung laut DGUV Regel 108-007?",
+    opts:["Stapel dürfen maximal 2 m hoch sein.","Das Schlankheitsverhältnis (Höhe zu Schmalseite) darf 6:1 nicht überschreiten.","Paletten müssen mindestens 50 cm Abstand zueinander haben.","Nur EUR-Paletten dürfen gestapelt werden."], ans:1 },
+  { q:"Welcher Vorteil zeichnet das AutoStore-System besonders aus?",
+    opts:["Es ist deutlich kostengünstiger als klassische Regale.","Durch den Wegfall von Regalgassen ist eine Platzersparnis von bis zu 60\u202f% möglich.","Es kann auch große und sperrige Güter lagern.","Es funktioniert komplett ohne Elektronik."], ans:1 },
+  { q:"Welche Angabe ist für die Berechnung des Raumnutzungsgrades zusätzlich zum Flächennutzungsgrad notwendig?",
+    opts:["Anzahl der Lagereinheiten","Die Lagerhöhe","Der Lagerdurchsatz","Die Anzahl der Mitarbeiter"], ans:1 }
+];
+
+// Zuordnung: 10 Begriffe in 2 Kategorien
+const ZUO_CATS = [
+  { label: "FIFO-konforme Lagerarten", color: "#0d2b1e", borderColor: "var(--green)" },
+  { label: "LIFO-konforme Lagerarten", color: "#2b0d0d", borderColor: "var(--red)" }
+];
+// items: [text, catIndex]
+const ZUO_ITEMS = [
+  ["Durchlaufregal", 0],
+  ["Einfahrregal",   1],
+  ["Reihenlagerung", 0],
+  ["Blocklagerung",  1],
+  ["Einschubregal",  1],
+  ["Palettenregal",  0],
+  ["Durchfahrregal (von 2 Seiten)", 0],
+  ["Kanalregal",     1],
+  ["Fachbodenregal", 0],
+  ["Blocklagerung (homogen, große Chargen)", 1]
+];
+
+const CALC_DATA = [
+  { id:"c1", pts:2,
+    q:"Berechne den Auslastungsgrad des Lagers in Prozent.",
+    formula:"Auslastungsgrad = (belegte Stellplätze ÷ Gesamtkapazität) × 100",
+    unit:"%", ans:75, tol:0.5 },
+  { id:"c2", pts:2,
+    q:"Berechne die durchschnittlichen Kosten pro Stellplatz und Jahr.",
+    formula:"Kosten je Stellplatz = Gesamtlagerkosten ÷ Gesamtkapazität",
+    unit:"€ / Stellplatz", ans:180, tol:0.5 },
+  { id:"c3", pts:2,
+    q:"Das neue Regal soll die Kapazität erweitern. Wie viele neue Stellplätze entstehen?",
+    formula:"Stellplätze = Zeilen × Felder × Ebenen",
+    unit:"Stellplätze", ans:300, tol:0 },
+  { id:"c4", pts:2,
+    q:"Berechne die Kosten pro Stellplatz des neuen Regals pro Jahr.",
+    formula:"Kosten je Stellplatz = Regalkosten ÷ neue Stellplätze",
+    unit:"€ / Stellplatz", ans:80, tol:0.5 }
+];
+
+// ── STATE ────────────────────────────────────────────────────────
+let scores = { tf:0, lueck:0, mc:0, zuo:0, calc:0 };
+const MAX  = { tf:12, lueck:8, mc:12, zuo:10, calc:8 };
+let tfAnswered = {};
+let mcAnswered = {};
+let dragItem = null;
+
+// ── NAV ─────────────────────────────────────────────────────────
+function goto(i) {
+  document.querySelectorAll('.sec').forEach((s,j) => s.classList.toggle('active', j===i));
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  if (i===5) buildResult();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function markDone(i) { document.getElementById('tab'+i).classList.add('done'); }
+function updatePts() {
+  const t = Object.values(scores).reduce((a,b)=>a+b,0);
+  const m = Object.values(MAX).reduce((a,b)=>a+b,0);
+  document.getElementById('live-pts').textContent = t+' / '+m+' Pkt.';
+}
+
+// ── A1: RICHTIG/FALSCH ──────────────────────────────────────────
+function buildTF() {
+  const c = document.getElementById('tf-container');
+  c.innerHTML = '';
+  TF_DATA.forEach((item,i) => {
+    const d = document.createElement('div');
+    d.className = 'card'; d.id = 'tf-card-'+i;
+    d.innerHTML = `
+      <div class="q-num">Aussage ${i+1} · 1 Punkt</div>
+      <div class="q-text">${item.s}</div>
+      <div class="tf-opts">
+        <button class="tf-btn" id="tf-r-${i}" onclick="answerTF(${i},true)">✓ Richtig</button>
+        <button class="tf-btn" id="tf-f-${i}" onclick="answerTF(${i},false)">✗ Falsch</button>
+      </div>
+      <div class="fb" id="tf-fb-${i}"></div>
+    `;
+    c.appendChild(d);
+  });
+}
+function answerTF(i, chosen) {
+  if (tfAnswered[i]) return;
+  tfAnswered[i] = true;
+  const correct = TF_DATA[i].ok;
+  const rBtn = document.getElementById('tf-r-'+i);
+  const fBtn = document.getElementById('tf-f-'+i);
+  rBtn.disabled = fBtn.disabled = true;
+  const fb = document.getElementById('tf-fb-'+i);
+  if (chosen === correct) {
+    (chosen ? rBtn : fBtn).classList.add('t-ok');
+    fb.className = 'fb show ok'; fb.textContent = '✓ Richtig! +1 Punkt';
+    scores.tf++; updatePts();
+  } else {
+    (chosen ? rBtn : fBtn).classList.add('t-err');
+    (correct ? rBtn : fBtn).classList.add('t-show');
+    fb.className = 'fb show err';
+    fb.textContent = '✗ Falsch. Korrekt wäre: ' + (correct ? 'Richtig' : 'Falsch') + '.';
+  }
+  markDone(0);
+}
+function resetTF() {
+  tfAnswered = {}; scores.tf = 0; updatePts();
+  buildTF();
+}
+
+// ── A2: LÜCKENTEXT ──────────────────────────────────────────────
+function initLueck() {
+  for (let i=1;i<=7;i++) {
+    const s = document.getElementById('lb'+i);
+    LUECK_OPTS_1_7.forEach(o => { const el=document.createElement('option'); el.value=o; el.textContent=o; s.appendChild(el); });
+  }
+  const s8 = document.getElementById('lb8');
+  LUECK_OPTS_8.forEach(o => { const el=document.createElement('option'); el.value=o; el.textContent=o; s8.appendChild(el); });
+}
+function auswerteLueck() {
+  let pts = 0;
+  for (let i=1;i<=8;i++) {
+    const s = document.getElementById('lb'+i);
+    s.classList.remove('ls-ok','ls-err');
+    if (s.value === LUECK_CORRECT['lb'+i]) { s.classList.add('ls-ok'); pts++; }
+    else s.classList.add('ls-err');
+  }
+  scores.lueck = pts; updatePts(); markDone(1);
+  const fb = document.getElementById('lueck-fb');
+  fb.className = 'fb show '+(pts>=7?'ok':pts>=5?'inf':'err');
+  fb.textContent = `Ergebnis: ${pts} / 8 Punkte. `+(pts<8?'Rot markierte Felder sind falsch.':'Alle korrekt! 🎉');
+}
+function resetLueck() {
+  for (let i=1;i<=8;i++) { const s=document.getElementById('lb'+i); s.value=''; s.classList.remove('ls-ok','ls-err'); }
+  document.getElementById('lueck-fb').className='fb';
+  scores.lueck=0; updatePts();
+}
+
+// ── A3: MC ───────────────────────────────────────────────────────
+function buildMC() {
+  const c = document.getElementById('mc-container');
+  c.innerHTML = '';
+  MC_DATA.forEach((item,qi) => {
+    const d = document.createElement('div');
+    d.className='card'; d.id='mc-card-'+qi;
+    d.innerHTML = `
+      <div class="q-num">Frage ${qi+1} · 1 Punkt</div>
+      <div class="q-text">${item.q}</div>
+      <div class="mc-grid" id="mc-g-${qi}">
+        ${item.opts.map((o,oi)=>`<button class="mc-btn" id="mc-${qi}-${oi}" onclick="answerMC(${qi},${oi})">${String.fromCharCode(97+oi)})&nbsp;${o}</button>`).join('')}
+      </div>
+      <div class="fb" id="mc-fb-${qi}"></div>
+    `;
+    c.appendChild(d);
+  });
+}
+function answerMC(qi,chosen) {
+  if (mcAnswered[qi]) return;
+  mcAnswered[qi] = true;
+  const correct = MC_DATA[qi].ans;
+  for (let i=0;i<MC_DATA[qi].opts.length;i++) document.getElementById(`mc-${qi}-${i}`).disabled=true;
+  const fb = document.getElementById('mc-fb-'+qi);
+  if (chosen===correct) {
+    document.getElementById(`mc-${qi}-${chosen}`).classList.add('m-ok');
+    fb.className='fb show ok'; fb.textContent='✓ Richtig! +1 Punkt';
+    scores.mc++; updatePts();
+  } else {
+    document.getElementById(`mc-${qi}-${chosen}`).classList.add('m-err');
+    document.getElementById(`mc-${qi}-${correct}`).classList.add('m-show');
+    fb.className='fb show err';
+    fb.textContent=`✗ Falsch. Richtig: ${String.fromCharCode(97+correct)}) ${MC_DATA[qi].opts[correct]}`;
+  }
+  markDone(2);
+}
+function resetMC() {
+  mcAnswered={}; scores.mc=0; updatePts(); buildMC();
+}
+
+// ── A4: ZUORDNUNG (DRAG & DROP) ──────────────────────────────────
+function buildZuo() {
+  const wrap = document.getElementById('zuo-wrap');
+  wrap.innerHTML = '';
+
+  // Shuffle items
+  const shuffled = [...ZUO_ITEMS].sort(()=>Math.random()-.5);
+
+  // Pool column
+  const poolCol = document.createElement('div');
+  poolCol.className = 'zuo-col';
+  poolCol.innerHTML = '<h4>Verfügbare Begriffe</h4>';
+  const pool = document.createElement('div');
+  pool.className = 'zuo-pool'; pool.id = 'zuo-pool';
+  shuffled.forEach(([text],i) => {
+    const chip = document.createElement('div');
+    chip.className='zuo-chip'; chip.textContent=text; chip.dataset.idx=ZUO_ITEMS.findIndex(z=>z[0]===text);
+    chip.draggable=true;
+    chip.addEventListener('dragstart', e => { dragItem=chip; chip.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    chip.addEventListener('dragend', ()=>{ chip.classList.remove('dragging'); dragItem=null; });
+    // touch
+    addTouch(chip);
+    pool.appendChild(chip);
+  });
+  poolCol.appendChild(pool);
+  wrap.appendChild(poolCol);
+
+  // Drop zones column
+  const dropCol = document.createElement('div');
+  dropCol.className='zuo-col';
+  dropCol.innerHTML='<h4>Kategorien</h4>';
+  ZUO_CATS.forEach((cat,ci) => {
+    const zone = document.createElement('div');
+    zone.className='zuo-drop'; zone.id='drop-'+ci;
+    zone.innerHTML=`<div class="drop-label">${cat.label}</div>`;
+    zone.addEventListener('dragover', e=>{e.preventDefault();zone.classList.add('drag-over');});
+    zone.addEventListener('dragleave', ()=>zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault(); zone.classList.remove('drag-over');
+      if (dragItem) zone.appendChild(dragItem);
+    });
+    dropCol.appendChild(zone);
+  });
+  wrap.appendChild(dropCol);
+
+  document.getElementById('zuo-fb').className='fb';
+}
+
+function addTouch(chip) {
+  let startY, startX, clone;
+  chip.addEventListener('touchstart', e => {
+    const t=e.touches[0]; startX=t.clientX; startY=t.clientY;
+    clone=chip.cloneNode(true);
+    clone.style.cssText=`position:fixed;opacity:.7;pointer-events:none;z-index:9999;width:${chip.offsetWidth}px;left:${t.clientX-chip.offsetWidth/2}px;top:${t.clientY-20}px;`;
+    document.body.appendChild(clone);
+  },{passive:true});
+  chip.addEventListener('touchmove', e => {
+    const t=e.touches[0];
+    if (clone) { clone.style.left=(t.clientX-chip.offsetWidth/2)+'px'; clone.style.top=(t.clientY-20)+'px'; }
+    e.preventDefault();
+  },{passive:false});
+  chip.addEventListener('touchend', e => {
+    if (clone) { document.body.removeChild(clone); clone=null; }
+    const t=e.changedTouches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    const zone=el&&el.closest('.zuo-drop');
+    if (zone) zone.appendChild(chip);
+  });
+}
+
+function auswerteZuo() {
+  let pts = 0;
+  ZUO_CATS.forEach((_,ci) => {
+    const zone=document.getElementById('drop-'+ci);
+    zone.classList.remove('d-ok','d-err');
+    const chips=[...zone.querySelectorAll('.zuo-chip')];
+    let ok=true;
+    chips.forEach(chip => {
+      const idx=parseInt(chip.dataset.idx);
+      if (ZUO_ITEMS[idx][1]!==ci) ok=false;
+    });
+    if (chips.length>0 && ok) { zone.classList.add('d-ok'); pts+=chips.length; }
+    else if (chips.length>0) zone.classList.add('d-err');
+  });
+  // Check items still in pool as wrong
+  const poolItems=[...document.querySelectorAll('#zuo-pool .zuo-chip')];
+  const totalCorrect = ZUO_ITEMS.filter((item,i)=>{
+    const zone=document.getElementById('drop-'+item[1]);
+    return [...zone.querySelectorAll('.zuo-chip')].some(c=>parseInt(c.dataset.idx)===i);
+  }).length;
+  scores.zuo=Math.min(totalCorrect, MAX.zuo); updatePts(); markDone(3);
+  const fb=document.getElementById('zuo-fb');
+  fb.className='fb show '+(scores.zuo>=8?'ok':scores.zuo>=5?'inf':'err');
+  fb.textContent=`${scores.zuo} / ${MAX.zuo} Begriffe korrekt zugeordnet. Grüne Zonen = vollständig richtig.`;
+}
+function resetZuo() { scores.zuo=0; updatePts(); buildZuo(); }
+
+// ── A5: RECHNEN ──────────────────────────────────────────────────
+function buildCalc() {
+  const c=document.getElementById('calc-container');
+  c.innerHTML='';
+  CALC_DATA.forEach((task,i) => {
+    const d=document.createElement('div');
+    d.className='card'; d.id='calc-card-'+task.id;
+    d.innerHTML=`
+      <div class="q-num">${String.fromCharCode(97+i)}) · ${task.pts} Punkte</div>
+      <div class="q-text">${task.q}</div>
+      <div class="calc-formula">Formel: ${task.formula}</div>
+      <div class="inp-row">
+        <input type="number" class="calc-inp" id="inp-${task.id}" placeholder="Ergebnis …" step="any">
+        <span class="calc-unit">${task.unit}</span>
+      </div>
+      <div class="fb" id="calc-fb-${task.id}"></div>
+    `;
+    c.appendChild(d);
+  });
+}
+function auswerteCalc() {
+  let pts=0;
+  CALC_DATA.forEach(task=>{
+    const inp=document.getElementById('inp-'+task.id);
+    const fb=document.getElementById('calc-fb-'+task.id);
+    const val=parseFloat(inp.value);
+    inp.classList.remove('ci-ok','ci-err');
+    if (isNaN(val)) { fb.className='fb show inf'; fb.textContent='Noch keine Eingabe.'; return; }
+    if (Math.abs(val-task.ans)<=task.tol) {
+      inp.classList.add('ci-ok'); fb.className='fb show ok'; fb.textContent=`✓ Richtig! +${task.pts} Punkte`; pts+=task.pts;
+    } else {
+      inp.classList.add('ci-err'); fb.className='fb show err'; fb.textContent=`✗ Nicht korrekt. Richtige Antwort: ${task.ans} ${task.unit}`;
+    }
+  });
+  scores.calc=pts; updatePts(); markDone(4);
+}
+function resetCalc() { scores.calc=0; updatePts(); buildCalc(); }
+
+// ── ERGEBNIS ─────────────────────────────────────────────────────
+function buildResult() {
+  const total=Object.values(scores).reduce((a,b)=>a+b,0);
+  const maxTotal=Object.values(MAX).reduce((a,b)=>a+b,0);
+  document.getElementById('res-pts').textContent=total+' / '+maxTotal;
+  const pct=total/maxTotal*100;
+  let note,msg,col;
+  if(pct>=90){note='1';msg='Ausgezeichnet! 🏆';col='var(--green)';}
+  else if(pct>=80){note='2';msg='Sehr gut gemacht!';col='#4fc3f7';}
+  else if(pct>=67){note='3';msg='Solide – weiter so!';col='var(--yellow)';}
+  else if(pct>=50){note='4';msg='Bestanden – noch Luft nach oben.';col='#ffa726';}
+  else if(pct>=30){note='5';msg='Mehr Übung nötig!';col='var(--red)';}
+  else{note='6';msg='Schau dir die Themen nochmal an.';col='var(--red)';}
+  document.getElementById('res-note').textContent='Note: '+note;
+  document.getElementById('res-msg').textContent=msg;
+  document.getElementById('res-ring').style.borderColor=col;
+  const bw=document.getElementById('bar-wrap');
+  bw.innerHTML=[
+    {l:'A1 Richtig/Falsch',s:scores.tf,  m:MAX.tf},
+    {l:'A2 Lückentext',    s:scores.lueck,m:MAX.lueck},
+    {l:'A3 MC',            s:scores.mc,  m:MAX.mc},
+    {l:'A4 Zuordnung',     s:scores.zuo, m:MAX.zuo},
+    {l:'A5 Rechnen',       s:scores.calc,m:MAX.calc},
+  ].map(b=>`
+    <div class="bar-row">
+      <span class="bar-lbl">${b.l}</span>
+      <div class="bar-trk"><div class="bar-fill" style="width:${b.s/b.m*100}%"></div></div>
+      <span class="bar-pts">${b.s}/${b.m}</span>
+    </div>`).join('');
+}
+
+function resetAll() {
+  scores={tf:0,lueck:0,mc:0,zuo:0,calc:0};
+  tfAnswered={}; mcAnswered={};
+  updatePts();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('done'));
+  buildTF(); resetLueck(); resetMC(); buildZuo(); buildCalc();
+  goto(0);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+buildTF();
+initLueck();
+buildMC();
+buildZuo();
+buildCalc();
+</script>
+</body>
+</html>

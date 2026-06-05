@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Überraschung für Mark 🎁</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, #1a3a4a 0%, #2d6a7a 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Lato', sans-serif;
+  }
+
+  .container {
+    max-width: 680px;
+    width: 100%;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+    animation: fadeDown 0.8s ease forwards;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .header .emoji-row {
+    font-size: 32px;
+    letter-spacing: 10px;
+    margin-bottom: 14px;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    color: #fff;
+    font-size: 38px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .header h1 span { color: #c8a96e; font-style: italic; }
+
+  .header p {
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .intro-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(200,169,110,0.3);
+    padding: 28px 36px;
+    text-align: center;
+    margin-bottom: 30px;
+    border-radius: 2px;
+    animation: fadeDown 0.8s ease 0.2s both;
+  }
+
+  .intro-card p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: rgba(255,255,255,0.9);
+    font-size: 16px;
+    line-height: 1.9;
+  }
+
+  .intro-card p strong {
+    font-style: normal;
+    color: #c8a96e;
+  }
+
+  .scratch-hint {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .cards-grid .card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    max-width: 50%;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .card {
+    position: relative;
+    height: 160px;
+    cursor: pointer;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .card-back {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #c8a96e, #a07840);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    backface-visibility: hidden;
+    z-index: 2;
+  }
+
+  .card-back .scratch-icon {
+    font-size: 28px;
+    animation: wiggle 1.5s ease-in-out infinite;
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  .card-back .scratch-text {
+    color: rgba(255,255,255,0.8);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .card-back .card-number {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-family: 'Playfair Display', serif;
+    color: rgba(255,255,255,0.4);
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .card-front {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    border: 2px solid #c8a96e;
+  }
+
+  .card-front .exp-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .card-front .exp-name {
+    font-family: 'Playfair Display', serif;
+    color: #1a3a4a;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .card-front .exp-desc {
+    color: #888;
+    font-size: 11px;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  /* Revealed state */
+  .card.revealed .card-back {
+    transform: rotateY(90deg) scale(0);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .card.revealed .card-front {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .card.revealed {
+    animation: celebrate 0.5s ease forwards;
+  }
+
+  @keyframes celebrate {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.06); }
+    60% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+  }
+
+  .reveal-all-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid rgba(200,169,110,0.5);
+    color: rgba(255,255,255,0.6);
+    font-family: 'Lato', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .reveal-all-btn:hover {
+    background: rgba(200,169,110,0.1);
+    color: #c8a96e;
+    border-color: #c8a96e;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 28px;
+    animation: fadeDown 0.8s ease 0.4s both;
+  }
+
+  .footer p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .footer .date-badge {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 20px;
+    border: 1px solid rgba(200,169,110,0.4);
+    color: #c8a96e;
+    font-family: 'Lato', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-style: normal;
+  }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .all-revealed-msg {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    background: rgba(200,169,110,0.15);
+    border: 1px solid rgba(200,169,110,0.4);
+    margin-top: 16px;
+    animation: fadeDown 0.5s ease forwards;
+  }
+
+  .all-revealed-msg p {
+    font-family: 'Playfair Display', serif;
+    color: #c8a96e;
+    font-size: 18px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="emoji-row">🎁 🌋 🌊</div>
+    <h1>Für dich, <span>Mark</span></h1>
+    <p>Zum Geburtstag am 6. Juni</p>
+  </div>
+
+  <div class="intro-card">
+    <p>
+      Manche Geschenke kauft man im Laden — dieses kommt von Herzen.<br><br>
+      Ich schenke dir fünf Augenblicke, in denen die Zeit stehen bleibt:<br>
+      das Meer, die Berge, den Wein, die Wellen — und wir beide.<br><br>
+      <strong>Teneriffa wartet auf uns. Und ich kann es kaum erwarten. 🌊</strong>
+    </p>
+  </div>
+
+  <div class="scratch-hint">👆 Tippe auf die Kacheln zum Aufdecken</div>
+
+  <div class="cards-grid" id="cardsGrid">
+
+    <div class="card" onclick="reveal(this)">
+      <div class="card-back">
+        <div class="card-number">1</div>
+        <div class="scratch-icon">🤫</div>
+        <div class="scratch-text">Überraschung!</div>
+      </div>
+      <div class="card-front">
+        <div class="exp-icon">🍳</div>
+        <div class="exp-name">Kanarischer Kochkurs</div>
+        <div class="exp-desc">Echte kanarische Küche selbst zubereiten — Mojo, Tapas und Inselgeschichten inklusive.</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="reveal(this)">
+      <div class="card-back">
+        <div class="card-number">2</div>
+        <div class="scratch-icon">🤫</div>
+        <div class="scratch-text">Überraschung!</div>
+      </div>
+      <div class="card-front">
+        <div class="exp-icon">🍷</div>
+        <div class="exp-name">Weinbergstour & Tasting</div>
+        <div class="exp-desc">Durch die Weinberge des Nordens, mit Blick auf Meer und Teide — und einem Glas in der Hand.</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="reveal(this)">
+      <div class="card-back">
+        <div class="card-number">3</div>
+        <div class="scratch-icon">🤫</div>
+        <div class="scratch-text">Überraschung!</div>
+      </div>
+      <div class="card-front">
+        <div class="exp-icon">🏍️</div>
+        <div class="exp-name">Quad-Tour durch den Norden</div>
+        <div class="exp-desc">Off-Road durch Bergpfade und Vulkanlandschaft — mit Panoramablick auf Teide und Meer.</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="reveal(this)">
+      <div class="card-back">
+        <div class="card-number">4</div>
+        <div class="scratch-icon">🤫</div>
+        <div class="scratch-text">Überraschung!</div>
+      </div>
+      <div class="card-front">
+        <div class="exp-icon">🐋</div>
+        <div class="exp-name">Wale & Delfine auf dem Meer</div>
+        <div class="exp-desc">Mit dem Katamaran hinaus auf den Atlantik — Wale, Delfine und Meeresluft.</div>
+      </div>
+    </div>
+
+    <div class="card" onclick="reveal(this)">
+      <div class="card-back">
+        <div class="card-number">5</div>
+        <div class="scratch-icon">🤫</div>
+        <div class="scratch-text">Überraschung!</div>
+      </div>
+      <div class="card-front">
+        <div class="exp-icon">🏄</div>
+        <div class="exp-name">Surfstunde im Atlantik</div>
+        <div class="exp-desc">Rein ins Wasser, rauf aufs Brett — dein erstes Mal auf einer Welle wartet auf dich!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="reveal-all-btn" onclick="revealAll()">Alle auf einmal aufdecken ✨</button>
+
+  <div class="all-revealed-msg" id="allRevealedMsg">
+    <p>🎉 Fünf Abenteuer. Zwei Menschen. Eine Insel. 🌋</p>
+  </div>
+
+  <div class="footer">
+    <p>In Liebe — für dich.</p>
+    <div class="date-badge">11. – 25. Juli 2026 · Teneriffa</div>
+  </div>
+
+</div>
+
+<script>
+  let revealedCount = 0;
+  const total = 5;
+
+  function reveal(card) {
+    if (card.classList.contains('revealed')) return;
+    card.classList.add('revealed');
+    revealedCount++;
+    launchConfetti(card);
+    if (revealedCount === total) showAllRevealed();
+  }
+
+  function revealAll() {
+    document.querySelectorAll('.card:not(.revealed)').forEach((card, i) => {
+      setTimeout(() => reveal(card), i * 150);
+    });
+  }
+
+  function showAllRevealed() {
+    const msg = document.getElementById('allRevealedMsg');
+    msg.style.display = 'block';
+    for (let i = 0; i < 40; i++) {
+      setTimeout(() => launchRandomConfetti(), i * 60);
+    }
+  }
+
+  function launchConfetti(card) {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const colors = ['#c8a96e', '#fff', '#2d6a7a', '#f5d98b', '#1a3a4a'];
+    for (let i = 0; i < 12; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = cx + (Math.random() - 0.5) * 80 + 'px';
+      el.style.top = cy + 'px';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      el.style.width = (Math.random() * 8 + 6) + 'px';
+      el.style.height = (Math.random() * 8 + 6) + 'px';
+      el.style.animation = `confettiFall ${Math.random() * 1.5 + 1}s ease forwards`;
+      el.style.animationDelay = Math.random() * 0.3 + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }
+  }
+
+  function launchRandomConfetti() {
+    const colors = ['#c8a96e', '#fff', '#2d6a7a', '#f5d98b'];
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * window.innerWidth + 'px';
+    el.style.top = '-20px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    el.style.width = (Math.random() * 10 + 6) + 'px';
+    el.style.height = (Math.random() * 10 + 6) + 'px';
+    el.style.animation = `confettiFall ${Math.random() * 2 + 1.5}s ease forwards`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+</script>
+
+</body>
+</html>
